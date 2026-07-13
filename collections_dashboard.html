@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bedrock Portfolio — Collections Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F6F2; --card:#FFFFFF; --ink:#17302A; --ink-soft:#4C6058;
+  --line:#DCE4DD; --green:#1E7A5A; --green-soft:#E3F0E9;
+  --amber:#D9930D; --red:#BF4132;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --body:'Archivo',system-ui,sans-serif;
+  --display:'Bricolage Grotesque','Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,4vw,40px);line-height:1.05;letter-spacing:-.01em}
+.asof{font-family:var(--mono);font-size:12px;color:var(--ink-soft);text-align:right}
+.asof b{color:var(--ink)}
+.tabs{display:flex;gap:8px;border-bottom:2px solid var(--ink);margin-bottom:14px}
+.tabs>button{font-family:var(--mono);font-size:12.5px;font-weight:500;padding:10px 20px 9px;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;background:var(--card);color:var(--ink-soft);cursor:pointer}
+.tabs>button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs>button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.tabs .mtd{font-size:9.5px;background:var(--green-soft);color:var(--green);border-radius:8px;padding:1px 6px;margin-left:6px}
+.tabs>button.on .mtd{background:rgba(255,255,255,.18);color:#fff}
+.view{display:none}.view.on{display:block}
+
+.filterbars{margin-bottom:22px}
+.regionbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px}
+.regionbar .rlab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-right:4px;min-width:52px}
+.regionbar button{font-family:var(--mono);font-size:11.5px;padding:6px 13px;border:1px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink-soft);cursor:pointer}
+.regionbar button .n{opacity:.55;font-size:10px;margin-left:4px}
+.regionbar button.on{background:var(--green);border-color:var(--green);color:#fff}
+.regionbar button.on .n{opacity:.8}
+.regionbar button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.regionbar.mgr button.on{background:#3A55A4;border-color:#3A55A4}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin:0 0 34px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px 14px;position:relative;overflow:hidden}
+.kpi .lab{font-size:12px;color:var(--ink-soft);font-weight:500;margin-bottom:6px}
+.kpi .val{font-family:var(--mono);font-weight:600;font-size:28px;letter-spacing:-.02em}
+.kpi .sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-top:4px}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green)}
+.kpi.warn::before{background:var(--amber)} .kpi.bad::before{background:var(--red)}
+section{margin-bottom:44px}
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:4px}
+h2{font-family:var(--display);font-weight:600;font-size:21px}
+.secnote{font-size:12.5px;color:var(--ink-soft);max-width:680px;margin-bottom:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.grid2{display:grid;grid-template-columns:1.7fr 1fr;gap:14px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.trend-legend{display:flex;gap:18px;font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin-bottom:8px;flex-wrap:wrap}
+.trend-legend .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.pending-pill{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--green-soft);color:var(--green);border-radius:20px;padding:3px 11px;font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.controls input[type=search]{font-family:var(--body);font-size:13px;border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--card);color:var(--ink);width:220px}
+.controls input[type=search]:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card)}
+.seg button{font-family:var(--mono);font-size:11.5px;padding:7px 13px;border:none;background:transparent;color:var(--ink-soft);cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--green);outline-offset:-2px}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);font-weight:500;text-align:right;padding:8px 10px;border-bottom:2px solid var(--ink);cursor:pointer;user-select:none;white-space:nowrap}
+th:first-child{text-align:left}
+th .arr{font-size:9px}
+td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+td:first-child{text-align:left;font-family:var(--body);font-weight:500;font-size:13px}
+td:first-child .cty{font-family:var(--mono);font-size:9.5px;color:var(--ink-soft);display:block;line-height:1.2}
+tr:hover td{background:#F6FAF7}
+.newpill{font-family:var(--mono);font-size:9px;background:#E8ECF7;color:#3A55A4;border-radius:10px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.pctcell{display:flex;align-items:center;gap:9px;justify-content:flex-end}
+.minibar{width:86px;height:7px;border-radius:4px;background:#EAEEE9;overflow:hidden;flex:none}
+.minibar i{display:block;height:100%;border-radius:4px}
+.g{color:var(--green)} .a{color:var(--amber)} .r{color:var(--red)}
+tfoot td{border-top:2px solid var(--ink);border-bottom:none;font-weight:600;background:#F2F5F1}
+tfoot td:first-child{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.agingrow{display:grid;grid-template-columns:170px 1fr 110px;gap:12px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--line)}
+.agingrow:last-child{border-bottom:none}
+.agname{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agtotal{font-family:var(--mono);font-size:12.5px;text-align:right}
+.stack{display:flex;height:18px;border-radius:5px;overflow:hidden;background:#EDF0EC}
+.stack i{display:block;height:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.b1{background:#7FB89F}.b2{background:#D9930D}.b3{background:#C96A2B}.b4{background:#BF4132}
+.aglegend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--ink-soft);margin:0 0 14px}
+.aglegend .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tooltip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;font-family:var(--mono);font-size:11px;padding:7px 10px;border-radius:7px;opacity:0;transition:opacity .12s;z-index:50;max-width:280px;white-space:pre-line}
+.daybar{height:10px;border-radius:6px;background:#EAEEE9;overflow:hidden;margin:8px 0 4px}
+.daybar i{display:block;height:100%;background:var(--green);border-radius:6px}
+.qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:720px){.qgrid{grid-template-columns:repeat(2,1fr)}}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.qcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--green)}
+.qcard.empty::before{background:var(--line)}
+.qcard .qlab{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
+.qcard .qval{font-family:var(--mono);font-weight:600;font-size:24px;letter-spacing:-.02em}
+.qcard.empty .qval{color:#B7C2BA;font-size:18px;font-weight:500}
+.qcard .qsub{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-top:4px}
+footer{font-family:var(--mono);font-size:11px;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:16px;line-height:1.8;margin-top:20px}
+@media(max-width:720px){
+  .agingrow{grid-template-columns:110px 1fr 84px}
+  .controls input[type=search]{width:100%}
+  td,th{padding:7px 6px;font-size:11.5px}
+  .minibar{width:52px}
+  .hide-sm{display:none}
+  .tabs>button{padding:9px 12px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="eyebrow" id="eyebrow">Bedrock Communities · 33 Properties · Fund II / III / IV</div>
+    <h1>Collections Dashboard</h1>
+  </div>
+  <div class="asof">Jan '25 – Jun '26 closed months<br>+ July MTD as of <b>7/13/2026</b></div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="on" data-view="closed" role="tab" aria-selected="true">Trend · Jan '25 – Jun '26</button>
+  <button data-view="current" role="tab" aria-selected="false">Current Month · July<span class="mtd">MTD</span></button>
+</nav>
+
+<div class="filterbars">
+  <div class="regionbar" id="regionbar" role="group" aria-label="Filter by fund">
+    <span class="rlab">Fund</span>
+  </div>
+  <div class="regionbar mgr" id="mgrbar" role="group" aria-label="Filter by region">
+    <span class="rlab">Region</span>
+  </div>
+</div>
+
+<!-- ============ CLOSED MONTHS VIEW ============ -->
+<div class="view on" id="view-closed">
+  <div class="kpis" id="kpis"></div>
+  <section>
+    <div class="sechead">
+      <h2 id="trendtitle">Portfolio trend — closed months</h2>
+      <span class="pending-pill">18 consecutive closed months · complete</span>
+    </div>
+    <p class="secnote">Left: percent of each month's billed charges collected (lot balances capped at one month). Right: total past-due balance carried, all ages.</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="trend-legend"><span><span class="dot" style="background:var(--green)"></span>% collected</span></div>
+        <svg id="trendsvg" viewBox="0 0 640 234" width="100%" role="img" aria-label="Monthly collection percentage trend"></svg>
+      </div>
+      <div class="card">
+        <div class="trend-legend"><span><span class="dot" style="background:var(--red)"></span>total past due ($)</span></div>
+        <svg id="pdsvg" viewBox="0 0 380 230" width="100%" role="img" aria-label="Total past due trend"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>2026 quarterly averages</h2><span class="pending-pill" id="qpill">% collected · avg past due</span></div>
+    <p class="secnote">Simple average of each quarter's closed months for the current filter selection. Q3 currently reflects July only (month-to-date); Q4 has no reports yet.</p>
+    <div class="qgrid" id="qgrid"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Community performance</h2></div>
+    <p class="secnote">June closed-month figures with an 18-month sparkline per community. Δ compares June vs each community's first billed month. Click any column to sort; hover a sparkline for month-by-month values.</p>
+    <div class="controls">
+      <input type="search" id="q" placeholder="Filter communities…" aria-label="Filter communities">
+      <div class="seg" role="group" aria-label="Value display">
+        <button class="on" data-mode="pct">%</button><button data-mode="usd">$</button>
+      </div>
+    </div>
+    <div class="card" style="padding:6px 14px 14px;overflow-x:auto">
+      <table id="perf">
+        <thead><tr>
+          <th data-k="community">Community <span class="arr"></span></th>
+          <th data-k="charges" class="hide-sm">June charges <span class="arr"></span></th>
+          <th data-k="pctCollected">% collected (Jun) <span class="arr"></span></th>
+          <th data-k="trend">Jan '25 → Jun '26</th>
+          <th data-k="delta">Δ 18 mo <span class="arr"></span></th>
+          <th data-k="pastDue">Past due (Jun) <span class="arr"></span></th>
+          <th data-k="pdRatio" class="hide-sm">PD % of month <span class="arr"></span></th>
+        </tr></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>Aged receivables by community</h2><span class="pending-pill">snapshot: June 30 delinquency report</span></div>
+    <p class="secnote">Every unpaid dollar by age. Hover a segment for the amount. Toggle between $ scale and % mix. Sorted largest receivable first.</p>
+    <div class="card">
+      <div class="aglegend">
+        <span><span class="sw b1"></span>0–30 days</span><span><span class="sw b2"></span>31–60</span>
+        <span><span class="sw b3"></span>61–90</span><span><span class="sw b4"></span>91+ days</span>
+      </div>
+      <div class="seg" style="margin-bottom:14px" role="group" aria-label="Aging bar scale">
+        <button class="on" data-agmode="abs">$ scale</button><button data-agmode="rel">% mix</button>
+      </div>
+      <div id="aging"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ CURRENT MONTH VIEW ============ -->
+<div class="view" id="view-current">
+  <div class="kpis" id="kpis-cur"></div>
+  <section>
+    <div class="sechead"><h2>Month progress</h2><span class="pending-pill" id="daypill"></span></div>
+    <p class="secnote">July is in progress — these figures move daily as payments post. Reference marks show June's close and last July's close for the selected region.</p>
+    <div class="card" id="progresscard"></div>
+  </section>
+
+  <section>
+    <div class="sechead"><h2>July collections by community</h2></div>
+    <p class="secnote">Sorted by % collected month-to-date. "vs Jun final" shows pacing against last month's close; "Charges YoY" and "Jul '25 final" compare against the same month last year (same-store where available).</p>
+    <div class="controls">
+      <input type="search" id="qc" placeholder="Filter communities…" aria-label="Filter communities">
+    </div>
+    <div class="card" style="padding:6px 14px 14px;overflow-x:auto">
+      <table id="perfc">
+        <thead><tr>
+          <th data-k="community">Community <span class="arr"></span></th>
+          <th data-k="chargesJul" class="hide-sm">July charges <span class="arr"></span></th>
+          <th data-k="chgYoY">Charges YoY <span class="arr"></span></th>
+          <th data-k="pctJul">% collected MTD <span class="arr"></span></th>
+          <th data-k="gap">vs Jun final <span class="arr"></span></th>
+          <th data-k="pctJulPrev" class="hide-sm">Jul '25 final <span class="arr"></span></th>
+          <th data-k="remaining">Remaining (July) <span class="arr"></span></th>
+          <th data-k="openJul" class="hide-sm">All open balances <span class="arr"></span></th>
+        </tr></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <b>Methodology.</b> Charges = rent-roll "Amount" total per community (all charge codes). Monthly % collected treats balances ≤ $0 as paid and caps each lot at one month of charges, so months are comparable even though rent-roll balances are cumulative. Past due = all positive lot balances. Aging buckets from the 6/30 Delinquency Summary; 0–30 includes the current month's billing. New during the period: Wood Dale first billed Oct '25, Woodlawn Manor Feb '26, Scenic View Jun '26 — months before a community's first billing are excluded from its stats and totals. Fund groupings sourced from the June 2026 OCC boxscore (Condensed Box Score tab); Scenic View is not yet listed there (newly added) and has been provisionally grouped with Fund III pending confirmation. Regions reflect manager territories as provided: Chris, Kim, Elizabeth. Fund and Region filters combine (both apply together) and default to All. Jan '25–Jun '26 are month-end closed reports (complete, no gaps); July is MTD as of 7/13/2026.
+</footer>
+</div>
+<div class="tooltip" id="tip"></div>
+
+<script>
+const RAW = {"communities": [{"community": "Citrus Center", "fullName": "Bedrock Citrus Center, LLC", "charges": 157676.0, "juneUnpaid": 6712.71, "pastDue": 7897.39, "lots": 228, "lotsOwing": 10, "b030": 16394.29, "b3160": 735.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9706, "charges": 147123.0, "pastDue": 5917.02, "owing": 13}, {"pct": 0.9565, "charges": 146440.0, "pastDue": 10628.96, "owing": 17}, {"pct": 0.9802, "charges": 144260.0, "pastDue": 4492.26, "owing": 13}, {"pct": 0.9666, "charges": 145092.0, "pastDue": 7114.28, "owing": 13}, {"pct": 0.9578, "charges": 145924.0, "pastDue": 6726.72, "owing": 17}, {"pct": 0.9655, "charges": 145341.0, "pastDue": 5846.88, "owing": 16}, {"pct": 0.9761, "charges": 144911.0, "pastDue": 5858.35, "owing": 12}, {"pct": 0.9808, "charges": 144228.0, "pastDue": 4334.05, "owing": 10}, {"pct": 0.977, "charges": 156112.0, "pastDue": 5931.63, "owing": 20}, {"pct": 0.9789, "charges": 157387.0, "pastDue": 7504.03, "owing": 13}, {"pct": 0.9901, "charges": 157387.0, "pastDue": 5634.37, "owing": 8}, {"pct": 0.9938, "charges": 156652.0, "pastDue": 991.91, "owing": 8}, {"pct": 0.9766, "charges": 157421.0, "pastDue": 3983.24, "owing": 8}, {"pct": 0.9953, "charges": 158255.0, "pastDue": 777.13, "owing": 3}, {"pct": 0.9948, "charges": 157571.0, "pastDue": 841.13, "owing": 4}, {"pct": 0.9939, "charges": 158339.0, "pastDue": 1799.42, "owing": 4}, {"pct": 0.9947, "charges": 158360.0, "pastDue": 909.0, "owing": 2}, {"pct": 0.9574, "charges": 157676.0, "pastDue": 7897.39, "owing": 10}, {"pct": 0.9519, "charges": 158444.0, "pastDue": 13175.09, "owing": 13}], "delta": -0.0132, "firstMonth": "Jan '25", "chargesJulPrev": 144911.0, "pctJulPrev": 0.9761, "pdJulPrev": 5858.35, "region": "Fund II", "city": "Lakeland", "manager": "Chris", "chargesJul": 158444.0, "pctJul": 0.9519, "gap": -0.00550000000000006, "remaining": 7621.156400000005, "openJul": 13175.09, "chgYoY": 0.09338835561137526}, {"community": "Colonial", "fullName": "Bedrock Colonial, LLC", "charges": 59287.0, "juneUnpaid": 1489.0, "pastDue": 1614.0, "lots": 107, "lotsOwing": 2, "b030": 5033.12, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9578, "charges": 55859.0, "pastDue": 2359.4, "owing": 7}, {"pct": 0.9316, "charges": 54563.0, "pastDue": 3730.59, "owing": 6}, {"pct": 0.9299, "charges": 53813.5, "pastDue": 3774.19, "owing": 6}, {"pct": 0.9232, "charges": 55007.0, "pastDue": 4222.0, "owing": 3}, {"pct": 0.9119, "charges": 56251.0, "pastDue": 4956.0, "owing": 3}, {"pct": 0.9881, "charges": 56201.0, "pastDue": 771.0, "owing": 2}, {"pct": 0.9883, "charges": 55603.0, "pastDue": 698.0, "owing": 1}, {"pct": 0.9882, "charges": 54955.0, "pastDue": 698.0, "owing": 1}, {"pct": 0.9655, "charges": 56301.0, "pastDue": 4464.0, "owing": 3}, {"pct": 0.9551, "charges": 55005.0, "pastDue": 4685.0, "owing": 5}, {"pct": 0.9584, "charges": 56301.0, "pastDue": 4640.12, "owing": 6}, {"pct": 0.9835, "charges": 55130.0, "pastDue": 3842.34, "owing": 5}, {"pct": 0.965, "charges": 59988.0, "pastDue": 5828.26, "owing": 20}, {"pct": 0.9701, "charges": 59988.0, "pastDue": 6348.46, "owing": 9}, {"pct": 0.9965, "charges": 60267.0, "pastDue": 210.43, "owing": 6}, {"pct": 0.9793, "charges": 58964.0, "pastDue": 1378.78, "owing": 3}, {"pct": 1.0, "charges": 61337.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9749, "charges": 59287.0, "pastDue": 1614.0, "owing": 2}, {"pct": 0.9552, "charges": 62364.0, "pastDue": 3066.0, "owing": 4}], "delta": 0.0171, "firstMonth": "Jan '25", "chargesJulPrev": 55603.0, "pctJulPrev": 0.9883, "pdJulPrev": 698.0, "region": "Fund II", "city": "Lakeland", "manager": "Chris", "chargesJul": 62364.0, "pctJul": 0.9552, "gap": -0.01969999999999994, "remaining": 2793.907199999997, "openJul": 3066.0, "chgYoY": 0.12159415858856537}, {"community": "Crescent Lake", "fullName": "Bedrock Crescent Lake, LLC", "charges": 95348.75, "juneUnpaid": 2345.1, "pastDue": 4404.54, "lots": 141, "lotsOwing": 5, "b030": 13177.5, "b3160": 1593.36, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9252, "charges": 90260.0, "pastDue": 14110.65, "owing": 41}, {"pct": 0.9345, "charges": 89542.0, "pastDue": 15843.82, "owing": 13}, {"pct": 0.9351, "charges": 89575.0, "pastDue": 16613.14, "owing": 13}, {"pct": 0.9328, "charges": 87383.0, "pastDue": 11269.96, "owing": 10}, {"pct": 0.9332, "charges": 88108.0, "pastDue": 12759.3, "owing": 11}, {"pct": 0.9236, "charges": 87351.0, "pastDue": 13219.24, "owing": 15}, {"pct": 0.9488, "charges": 87370.0, "pastDue": 12521.45, "owing": 9}, {"pct": 0.9824, "charges": 87175.0, "pastDue": 3421.52, "owing": 4}, {"pct": 0.9658, "charges": 85735.0, "pastDue": 6721.61, "owing": 4}, {"pct": 0.9325, "charges": 92692.5, "pastDue": 10332.48, "owing": 11}, {"pct": 0.9327, "charges": 93695.5, "pastDue": 15636.98, "owing": 11}, {"pct": 0.9212, "charges": 96003.5, "pastDue": 22497.16, "owing": 10}, {"pct": 0.9499, "charges": 93671.5, "pastDue": 18334.05, "owing": 7}, {"pct": 0.9366, "charges": 93342.5, "pastDue": 7414.7, "owing": 7}, {"pct": 0.9571, "charges": 91724.5, "pastDue": 7895.8, "owing": 5}, {"pct": 0.9575, "charges": 92634.5, "pastDue": 9102.97, "owing": 6}, {"pct": 0.9596, "charges": 95268.5, "pastDue": 7944.01, "owing": 9}, {"pct": 0.9754, "charges": 95348.75, "pastDue": 4404.54, "owing": 5}, {"pct": 0.8923, "charges": 96195.75, "pastDue": 14942.92, "owing": 20}], "delta": 0.0502, "firstMonth": "Jan '25", "chargesJulPrev": 87370.0, "pctJulPrev": 0.9488, "pdJulPrev": 12521.45, "region": "Fund II", "city": "Riverview", "manager": "Elizabeth", "chargesJul": 96195.75, "pctJul": 0.8923, "gap": -0.08310000000000006, "remaining": 10360.282275000001, "openJul": 14942.92, "chgYoY": 0.10101579489527301}, {"community": "Emerald Lake", "fullName": "Bedrock Emerald Lake, LLC", "charges": 88264.81, "juneUnpaid": 1034.38, "pastDue": 1109.38, "lots": 109, "lotsOwing": 3, "b030": 12377.11, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9619, "charges": 81792.67, "pastDue": 4789.0, "owing": 6}, {"pct": 0.9772, "charges": 82026.67, "pastDue": 4344.0, "owing": 8}, {"pct": 0.9902, "charges": 82226.67, "pastDue": 880.0, "owing": 2}, {"pct": 0.9994, "charges": 81977.92, "pastDue": 50.0, "owing": 1}, {"pct": 0.9966, "charges": 80834.03, "pastDue": 275.0, "owing": 4}, {"pct": 0.9624, "charges": 81639.03, "pastDue": 3703.0, "owing": 5}, {"pct": 0.9797, "charges": 81739.03, "pastDue": 2615.0, "owing": 5}, {"pct": 0.9815, "charges": 84458.03, "pastDue": 3370.0, "owing": 3}, {"pct": 0.9764, "charges": 83703.03, "pastDue": 5195.0, "owing": 3}, {"pct": 0.9735, "charges": 84493.81, "pastDue": 5712.7, "owing": 4}, {"pct": 0.982, "charges": 83788.81, "pastDue": 5785.0, "owing": 2}, {"pct": 0.9557, "charges": 83083.81, "pastDue": 7476.11, "owing": 4}, {"pct": 0.9269, "charges": 89927.81, "pastDue": 11655.0, "owing": 10}, {"pct": 0.981, "charges": 86191.81, "pastDue": 4380.0, "owing": 3}, {"pct": 0.9879, "charges": 88259.23, "pastDue": 1146.0, "owing": 5}, {"pct": 0.977, "charges": 87520.23, "pastDue": 2165.82, "owing": 6}, {"pct": 0.9854, "charges": 89329.23, "pastDue": 2260.85, "owing": 5}, {"pct": 0.9883, "charges": 88264.81, "pastDue": 1109.38, "owing": 3}, {"pct": 0.9414, "charges": 89964.81, "pastDue": 5647.11, "owing": 10}], "delta": 0.0264, "firstMonth": "Jan '25", "chargesJulPrev": 81739.03, "pctJulPrev": 0.9797, "pdJulPrev": 2615.0, "region": "Fund II", "city": "Davenport", "manager": "Chris", "chargesJul": 89964.81, "pctJul": 0.9414, "gap": -0.04689999999999994, "remaining": 5271.937865999998, "openJul": 5647.11, "chgYoY": 0.10063466620536121}, {"community": "Lake Bonny", "fullName": "Bedrock Lake Bonny, LLC", "charges": 82106.0, "juneUnpaid": 2197.1, "pastDue": 2272.1, "lots": 106, "lotsOwing": 8, "b030": 15084.63, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9651, "charges": 69111.0, "pastDue": 4713.93, "owing": 9}, {"pct": 0.9423, "charges": 69111.0, "pastDue": 7498.22, "owing": 7}, {"pct": 0.946, "charges": 69111.0, "pastDue": 8004.27, "owing": 12}, {"pct": 0.9228, "charges": 67728.0, "pastDue": 11303.42, "owing": 13}, {"pct": 0.8864, "charges": 67886.0, "pastDue": 16149.8, "owing": 21}, {"pct": 0.8771, "charges": 69348.0, "pastDue": 19139.45, "owing": 22}, {"pct": 0.9563, "charges": 68696.0, "pastDue": 9794.6, "owing": 14}, {"pct": 0.9433, "charges": 70079.0, "pastDue": 5440.76, "owing": 18}, {"pct": 0.967, "charges": 70079.0, "pastDue": 3551.76, "owing": 18}, {"pct": 0.9412, "charges": 70609.0, "pastDue": 6399.76, "owing": 18}, {"pct": 0.8817, "charges": 72429.0, "pastDue": 11927.5, "owing": 20}, {"pct": 0.9175, "charges": 72508.0, "pastDue": 11645.15, "owing": 13}, {"pct": 0.9399, "charges": 81280.0, "pastDue": 10996.15, "owing": 12}, {"pct": 0.9612, "charges": 82519.0, "pastDue": 10918.97, "owing": 9}, {"pct": 0.9853, "charges": 81129.0, "pastDue": 1188.79, "owing": 5}, {"pct": 0.9871, "charges": 81200.0, "pastDue": 1044.63, "owing": 7}, {"pct": 0.9827, "charges": 81270.0, "pastDue": 1409.88, "owing": 6}, {"pct": 0.9732, "charges": 82106.0, "pastDue": 2272.1, "owing": 8}, {"pct": 0.8656, "charges": 82106.0, "pastDue": 13491.0, "owing": 17}], "delta": 0.0081, "firstMonth": "Jan '25", "chargesJulPrev": 68696.0, "pctJulPrev": 0.9563, "pdJulPrev": 9794.6, "region": "Fund II", "city": "Lakeland", "manager": "Chris", "chargesJul": 82106.0, "pctJul": 0.8656, "gap": -0.10759999999999992, "remaining": 11035.046399999997, "openJul": 13491.0, "chgYoY": 0.19520787236520332}, {"community": "Little Manatee", "fullName": "Bedrock Little Manatee, LLC", "charges": 86176.74, "juneUnpaid": 2046.0, "pastDue": 6636.0, "lots": 165, "lotsOwing": 5, "b030": 9673.0, "b3160": 1409.0, "b6190": 742.0, "b91": 1409.0, "series": [{"pct": 0.9255, "charges": 81167.24, "pastDue": 13845.78, "owing": 11}, {"pct": 0.947, "charges": 81174.24, "pastDue": 12690.2, "owing": 8}, {"pct": 0.9771, "charges": 79392.24, "pastDue": 5364.2, "owing": 3}, {"pct": 0.969, "charges": 80018.24, "pastDue": 6106.5, "owing": 5}, {"pct": 0.9922, "charges": 77072.24, "pastDue": 2830.0, "owing": 1}, {"pct": 0.9997, "charges": 77161.24, "pastDue": 20.0, "owing": 1}, {"pct": 0.9844, "charges": 77806.24, "pastDue": 1374.0, "owing": 2}, {"pct": 0.9842, "charges": 77261.74, "pastDue": 2748.0, "owing": 2}, {"pct": 0.9686, "charges": 77443.74, "pastDue": 5441.0, "owing": 4}, {"pct": 0.9919, "charges": 74411.74, "pastDue": 1414.0, "owing": 1}, {"pct": 0.9845, "charges": 78083.74, "pastDue": 2808.0, "owing": 2}, {"pct": 0.992, "charges": 76254.74, "pastDue": 1381.2, "owing": 2}, {"pct": 0.9834, "charges": 82156.74, "pastDue": 2908.0, "owing": 3}, {"pct": 0.9676, "charges": 81646.74, "pastDue": 3635.0, "owing": 4}, {"pct": 0.9591, "charges": 84022.74, "pastDue": 12361.54, "owing": 5}, {"pct": 0.9919, "charges": 83739.74, "pastDue": 2236.0, "owing": 2}, {"pct": 0.9845, "charges": 85323.74, "pastDue": 3710.0, "owing": 2}, {"pct": 0.9763, "charges": 86176.74, "pastDue": 6636.0, "owing": 5}, {"pct": 0.9606, "charges": 86176.74, "pastDue": 11007.0, "owing": 6}], "delta": 0.0508, "firstMonth": "Jan '25", "chargesJulPrev": 77806.24, "pctJulPrev": 0.9844, "pdJulPrev": 1374.0, "region": "Fund II", "city": "Ruskin", "manager": "Kim", "chargesJul": 86176.74, "pctJul": 0.9606, "gap": -0.015699999999999936, "remaining": 3395.3635559999993, "openJul": 11007.0, "chgYoY": 0.10758134566070798}, {"community": "Ocean Tide - MH", "fullName": "Bedrock Ocean Tide, LLC - MH", "charges": 216204.0, "juneUnpaid": 3356.0, "pastDue": 5057.0, "lots": 203, "lotsOwing": 4, "b030": 11432.0, "b3160": 1102.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9898, "charges": 187646.0, "pastDue": 1938.05, "owing": 2}, {"pct": 0.9995, "charges": 185836.0, "pastDue": 102.0, "owing": 1}, {"pct": 0.9929, "charges": 185888.0, "pastDue": 1477.0, "owing": 3}, {"pct": 0.9895, "charges": 186997.0, "pastDue": 3475.0, "owing": 3}, {"pct": 0.9944, "charges": 186895.0, "pastDue": 3518.0, "owing": 2}, {"pct": 1.0, "charges": 184983.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9992, "charges": 184779.0, "pastDue": 140.0, "owing": 1}, {"pct": 0.9992, "charges": 185786.0, "pastDue": 150.0, "owing": 1}, {"pct": 0.9976, "charges": 185736.0, "pastDue": 450.0, "owing": 3}, {"pct": 0.9945, "charges": 184729.0, "pastDue": 1099.0, "owing": 1}, {"pct": 1.0, "charges": 186788.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9902, "charges": 182862.0, "pastDue": 1887.0, "owing": 7}, {"pct": 0.9903, "charges": 212348.0, "pastDue": 2354.0, "owing": 2}, {"pct": 0.9883, "charges": 214822.0, "pastDue": 3906.0, "owing": 4}, {"pct": 0.9949, "charges": 217216.0, "pastDue": 3756.0, "owing": 1}, {"pct": 1.0, "charges": 215012.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9949, "charges": 216204.0, "pastDue": 1252.0, "owing": 1}, {"pct": 0.9845, "charges": 216204.0, "pastDue": 5057.0, "owing": 4}, {"pct": 0.9692, "charges": 216204.0, "pastDue": 10066.0, "owing": 7}], "delta": -0.0053, "firstMonth": "Jan '25", "chargesJulPrev": 184779.0, "pctJulPrev": 0.9992, "pdJulPrev": 140.0, "region": "Fund II", "city": "Riviera Beach", "manager": "Kim", "chargesJul": 216204.0, "pctJul": 0.9692, "gap": -0.015300000000000091, "remaining": 6659.083200000011, "openJul": 10066.0, "chgYoY": 0.17006802721088432}, {"community": "Ocean Tide - RV", "fullName": "Bedrock Ocean Tide, LLC - RV", "charges": 53061.0, "juneUnpaid": 2304.0, "pastDue": 5158.0, "lots": 78, "lotsOwing": 2, "b030": 10004.8, "b3160": 1352.0, "b6190": 1202.0, "b91": 0.0, "series": [{"pct": 0.9509, "charges": 59306.0, "pastDue": 5140.0, "owing": 4}, {"pct": 1.0, "charges": 58399.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9991, "charges": 57492.0, "pastDue": 50.0, "owing": 1}, {"pct": 1.0, "charges": 57592.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.981, "charges": 55578.0, "pastDue": 1207.0, "owing": 2}, {"pct": 0.9801, "charges": 55578.0, "pastDue": 1157.0, "owing": 1}, {"pct": 0.9802, "charges": 53364.0, "pastDue": 1207.0, "owing": 2}, {"pct": 0.9594, "charges": 54471.0, "pastDue": 2514.0, "owing": 3}, {"pct": 0.9595, "charges": 53414.0, "pastDue": 2464.0, "owing": 3}, {"pct": 0.9586, "charges": 53414.0, "pastDue": 2514.0, "owing": 4}, {"pct": 0.9975, "charges": 54421.0, "pastDue": 138.0, "owing": 1}, {"pct": 0.9009, "charges": 54421.0, "pastDue": 6142.0, "owing": 6}, {"pct": 0.9524, "charges": 55760.0, "pastDue": 4213.0, "owing": 3}, {"pct": 0.956, "charges": 55760.0, "pastDue": 5363.0, "owing": 3}, {"pct": 0.9784, "charges": 55760.0, "pastDue": 1252.0, "owing": 1}, {"pct": 0.9104, "charges": 50857.0, "pastDue": 5062.0, "owing": 4}, {"pct": 0.955, "charges": 51959.0, "pastDue": 5147.66, "owing": 3}, {"pct": 0.9566, "charges": 53061.0, "pastDue": 5158.0, "owing": 2}, {"pct": 0.8735, "charges": 53061.0, "pastDue": 12108.8, "owing": 6}], "delta": 0.0057, "firstMonth": "Jan '25", "chargesJulPrev": 53364.0, "pctJulPrev": 0.9802, "pdJulPrev": 1207.0, "region": "Fund II", "city": "Riviera Beach", "manager": "Kim", "chargesJul": 53061.0, "pctJul": 0.8735, "gap": -0.08309999999999995, "remaining": 6712.216499999997, "openJul": 12108.8, "chgYoY": -0.005677985158533794}, {"community": "Ocean Tide - Cottage", "fullName": "Bedrock Ocean Tide, LLC - Cottage", "charges": 38690.0, "juneUnpaid": 3996.67, "pastDue": 4296.67, "lots": 31, "lotsOwing": 4, "b030": 14420.0, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9994, "charges": 25907.0, "pastDue": 15.5, "owing": 1}, {"pct": 1.0, "charges": 26357.0, "pastDue": 0.5, "owing": 1}, {"pct": 0.9955, "charges": 30141.0, "pastDue": 135.1, "owing": 1}, {"pct": 0.9459, "charges": 29941.0, "pastDue": 1770.1, "owing": 2}, {"pct": 1.0, "charges": 31582.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 32902.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 29902.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9671, "charges": 28702.0, "pastDue": 1093.0, "owing": 1}, {"pct": 0.9688, "charges": 30252.0, "pastDue": 2186.0, "owing": 1}, {"pct": 0.9703, "charges": 31752.0, "pastDue": 3279.0, "owing": 1}, {"pct": 0.9714, "charges": 32952.0, "pastDue": 4372.0, "owing": 1}, {"pct": 0.9731, "charges": 36852.0, "pastDue": 5515.0, "owing": 2}, {"pct": 0.9753, "charges": 38202.0, "pastDue": 6558.0, "owing": 1}, {"pct": 0.9678, "charges": 37259.0, "pastDue": 1350.0, "owing": 1}, {"pct": 0.9667, "charges": 36049.0, "pastDue": 2700.0, "owing": 1}, {"pct": 1.0, "charges": 34049.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 35710.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.8967, "charges": 38690.0, "pastDue": 4296.67, "owing": 4}, {"pct": 0.8468, "charges": 37330.0, "pastDue": 7270.0, "owing": 4}], "delta": -0.1027, "firstMonth": "Jan '25", "chargesJulPrev": 29902.0, "pctJulPrev": 1.0, "pdJulPrev": 0.0, "region": "Fund II", "city": "Riviera Beach", "manager": "Kim", "chargesJul": 37330.0, "pctJul": 0.8468, "gap": -0.049900000000000055, "remaining": 5718.956, "openJul": 7270.0, "chgYoY": 0.2484114774931443}, {"community": "River Haven II", "fullName": "Bedrock River Haven II, LLC", "charges": 36063.0, "juneUnpaid": 1620.0, "pastDue": 1857.76, "lots": 61, "lotsOwing": 7, "b030": 5577.44, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.6784, "charges": 31920.0, "pastDue": 36595.02, "owing": 19}, {"pct": 0.7617, "charges": 31380.0, "pastDue": 33629.99, "owing": 15}, {"pct": 0.7528, "charges": 30216.0, "pastDue": 41895.91, "owing": 16}, {"pct": 0.8907, "charges": 28290.0, "pastDue": 19478.56, "owing": 10}, {"pct": 0.9381, "charges": 27726.0, "pastDue": 13006.84, "owing": 3}, {"pct": 0.9094, "charges": 25434.0, "pastDue": 5397.2, "owing": 5}, {"pct": 0.9183, "charges": 22904.65, "pastDue": 2559.28, "owing": 2}, {"pct": 0.8807, "charges": 20828.65, "pastDue": 3778.46, "owing": 2}, {"pct": 0.7679, "charges": 21565.61, "pastDue": 5217.22, "owing": 4}, {"pct": 0.9221, "charges": 29755.8, "pastDue": 3855.02, "owing": 3}, {"pct": 0.9652, "charges": 27065.8, "pastDue": 2271.51, "owing": 2}, {"pct": 0.9516, "charges": 29898.8, "pastDue": 3380.36, "owing": 3}, {"pct": 0.9853, "charges": 32227.22, "pastDue": 474.78, "owing": 1}, {"pct": 0.996, "charges": 32622.0, "pastDue": 130.44, "owing": 2}, {"pct": 0.9709, "charges": 34265.0, "pastDue": 1044.63, "owing": 3}, {"pct": 1.0, "charges": 33589.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9998, "charges": 33763.0, "pastDue": 31.29, "owing": 1}, {"pct": 0.9551, "charges": 36063.0, "pastDue": 1857.76, "owing": 7}, {"pct": 0.9063, "charges": 36063.0, "pastDue": 4393.03, "owing": 5}], "delta": 0.2767, "firstMonth": "Jan '25", "chargesJulPrev": 22904.65, "pctJulPrev": 0.9183, "pdJulPrev": 2559.28, "region": "Fund II", "city": "Ruskin", "manager": "Kim", "chargesJul": 36063.0, "pctJul": 0.9063, "gap": -0.048799999999999955, "remaining": 3379.1031000000003, "openJul": 4393.03, "chgYoY": 0.5744837838604824}, {"community": "Singing Forest", "fullName": "Bedrock Singing Forest, LLC", "charges": 110306.0, "juneUnpaid": 644.0, "pastDue": 644.0, "lots": 190, "lotsOwing": 2, "b030": 6240.0, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.975, "charges": 95303.0, "pastDue": 4378.0, "owing": 8}, {"pct": 0.966, "charges": 94271.0, "pastDue": 6703.0, "owing": 9}, {"pct": 0.9684, "charges": 102267.0, "pastDue": 6428.8, "owing": 16}, {"pct": 0.9747, "charges": 101711.0, "pastDue": 4878.63, "owing": 12}, {"pct": 0.9545, "charges": 102851.0, "pastDue": 6795.46, "owing": 15}, {"pct": 0.9658, "charges": 102851.0, "pastDue": 4384.0, "owing": 11}, {"pct": 0.966, "charges": 101183.0, "pastDue": 6085.0, "owing": 11}, {"pct": 0.9699, "charges": 101183.0, "pastDue": 3869.0, "owing": 9}, {"pct": 0.977, "charges": 103407.0, "pastDue": 3827.0, "owing": 8}, {"pct": 0.9691, "charges": 102295.0, "pastDue": 5063.0, "owing": 12}, {"pct": 0.9691, "charges": 102851.0, "pastDue": 7096.0, "owing": 10}, {"pct": 0.9677, "charges": 102851.0, "pastDue": 5609.0, "owing": 9}, {"pct": 0.9733, "charges": 102851.0, "pastDue": 5158.0, "owing": 7}, {"pct": 0.9887, "charges": 101739.0, "pastDue": 4451.0, "owing": 3}, {"pct": 0.9882, "charges": 110797.0, "pastDue": 5879.0, "owing": 4}, {"pct": 0.994, "charges": 107838.0, "pastDue": 696.0, "owing": 2}, {"pct": 0.9995, "charges": 110306.0, "pastDue": 50.0, "owing": 1}, {"pct": 0.9942, "charges": 110306.0, "pastDue": 644.0, "owing": 2}, {"pct": 0.9783, "charges": 110306.0, "pastDue": 2547.0, "owing": 18}], "delta": 0.0192, "firstMonth": "Jan '25", "chargesJulPrev": 101183.0, "pctJulPrev": 0.966, "pdJulPrev": 6085.0, "region": "Fund II", "city": "Floral City", "manager": "Elizabeth", "chargesJul": 110306.0, "pctJul": 0.9783, "gap": -0.015900000000000025, "remaining": 2393.6402000000057, "openJul": 2547.0, "chgYoY": 0.09016336736408292}, {"community": "Dogwood", "fullName": "Bedrock Dogwood, LLC", "charges": 73650.0, "juneUnpaid": 1262.0, "pastDue": 3059.0, "lots": 133, "lotsOwing": 3, "b030": 5989.4, "b3160": 886.0, "b6190": 761.0, "b91": 0.0, "series": [{"pct": 0.9898, "charges": 68600.0, "pastDue": 2960.93, "owing": 2}, {"pct": 0.9885, "charges": 67200.0, "pastDue": 850.73, "owing": 3}, {"pct": 1.0, "charges": 67860.0, "pastDue": 0.73, "owing": 1}, {"pct": 0.9896, "charges": 67200.0, "pastDue": 775.73, "owing": 2}, {"pct": 0.9786, "charges": 67200.0, "pastDue": 2215.73, "owing": 4}, {"pct": 0.9502, "charges": 67200.0, "pastDue": 4897.6, "owing": 28}, {"pct": 0.9522, "charges": 67900.0, "pastDue": 5572.6, "owing": 27}, {"pct": 1.0, "charges": 67200.0, "pastDue": 0.73, "owing": 1}, {"pct": 1.0, "charges": 67200.0, "pastDue": 0.73, "owing": 1}, {"pct": 1.0, "charges": 65800.0, "pastDue": 0.73, "owing": 1}, {"pct": 1.0, "charges": 66500.0, "pastDue": 0.73, "owing": 1}, {"pct": 1.0, "charges": 67200.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 73817.0, "pastDue": 2.0, "owing": 2}, {"pct": 1.0, "charges": 73056.0, "pastDue": 2.0, "owing": 1}, {"pct": 1.0, "charges": 73155.0, "pastDue": 3.0, "owing": 1}, {"pct": 0.9894, "charges": 71831.0, "pastDue": 886.0, "owing": 1}, {"pct": 0.9898, "charges": 74411.0, "pastDue": 1723.0, "owing": 2}, {"pct": 0.9829, "charges": 73650.0, "pastDue": 3059.0, "owing": 3}, {"pct": 0.9825, "charges": 72889.0, "pastDue": 1350.6, "owing": 5}], "delta": -0.0069, "firstMonth": "Jan '25", "chargesJulPrev": 67900.0, "pctJulPrev": 0.9522, "pdJulPrev": 5572.6, "region": "Fund II", "city": "Ocala", "manager": "Elizabeth", "chargesJul": 72889.0, "pctJul": 0.9825, "gap": -0.00039999999999995595, "remaining": 1275.5574999999972, "openJul": 1350.6, "chgYoY": 0.07347569955817379}, {"community": "Porpoise", "fullName": "Bedrock Porpoise, LLC", "charges": 26168.0, "juneUnpaid": 2499.0, "pastDue": 4575.44, "lots": 32, "lotsOwing": 4, "b030": 7643.57, "b3160": 1546.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9716, "charges": 24256.0, "pastDue": 688.36, "owing": 8}, {"pct": 1.0, "charges": 24256.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 24256.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 24256.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9902, "charges": 24256.0, "pastDue": 236.95, "owing": 1}, {"pct": 0.9542, "charges": 24256.0, "pastDue": 1214.28, "owing": 2}, {"pct": 0.9594, "charges": 24256.0, "pastDue": 1948.51, "owing": 2}, {"pct": 0.9646, "charges": 23498.0, "pastDue": 2655.94, "owing": 2}, {"pct": 0.9615, "charges": 24256.0, "pastDue": 3615.16, "owing": 3}, {"pct": 0.993, "charges": 23498.0, "pastDue": 163.85, "owing": 1}, {"pct": 1.0, "charges": 23498.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 23498.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 25048.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 24240.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9996, "charges": 25163.0, "pastDue": 9.0, "owing": 1}, {"pct": 1.0, "charges": 25163.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.903, "charges": 25163.0, "pastDue": 2805.59, "owing": 4}, {"pct": 0.9045, "charges": 26168.0, "pastDue": 4575.44, "owing": 4}, {"pct": 0.8765, "charges": 26168.0, "pastDue": 8246.06, "owing": 4}], "delta": -0.0671, "firstMonth": "Jan '25", "chargesJulPrev": 24256.0, "pctJulPrev": 0.9594, "pdJulPrev": 1948.51, "region": "Fund II", "city": "Seminole", "manager": "Kim", "chargesJul": 26168.0, "pctJul": 0.8765, "gap": -0.028000000000000025, "remaining": 3231.7480000000014, "openJul": 8246.06, "chgYoY": 0.07882585751978888}, {"community": "Cypress Harbor", "fullName": "Bedrock Cypress Harbor, LLC", "charges": 58903.0, "juneUnpaid": 1847.0, "pastDue": 8562.0, "lots": 93, "lotsOwing": 7, "b030": 7540.0, "b3160": 1645.0, "b6190": 833.0, "b91": 3937.0, "series": [{"pct": 0.9311, "charges": 58322.0, "pastDue": 10828.0, "owing": 9}, {"pct": 0.8773, "charges": 59041.0, "pastDue": 16322.0, "owing": 11}, {"pct": 0.7723, "charges": 57603.0, "pastDue": 15061.0, "owing": 7}, {"pct": 0.7697, "charges": 57603.0, "pastDue": 13467.0, "owing": 6}, {"pct": 0.8028, "charges": 57728.0, "pastDue": 13273.0, "owing": 7}, {"pct": 0.7766, "charges": 57728.0, "pastDue": 17987.0, "owing": 8}, {"pct": 0.8814, "charges": 57728.0, "pastDue": 11982.0, "owing": 5}, {"pct": 0.9168, "charges": 57229.67, "pastDue": 9003.67, "owing": 5}, {"pct": 0.8567, "charges": 58667.67, "pastDue": 15626.34, "owing": 10}, {"pct": 0.8938, "charges": 57009.0, "pastDue": 8784.0, "owing": 7}, {"pct": 0.8795, "charges": 57009.0, "pastDue": 12729.0, "owing": 9}, {"pct": 0.8927, "charges": 55690.0, "pastDue": 13348.0, "owing": 6}, {"pct": 0.8958, "charges": 59215.0, "pastDue": 16000.0, "owing": 6}, {"pct": 0.8806, "charges": 58457.0, "pastDue": 16131.0, "owing": 11}, {"pct": 0.9378, "charges": 59724.0, "pastDue": 11966.0, "owing": 12}, {"pct": 0.9651, "charges": 55894.0, "pastDue": 6110.0, "owing": 7}, {"pct": 0.9707, "charges": 57878.0, "pastDue": 6744.0, "owing": 5}, {"pct": 0.9686, "charges": 58903.0, "pastDue": 8562.0, "owing": 7}, {"pct": 0.9702, "charges": 59778.0, "pastDue": 9084.0, "owing": 6}], "delta": 0.0375, "firstMonth": "Jan '25", "chargesJulPrev": 57728.0, "pctJulPrev": 0.8814, "pdJulPrev": 11982.0, "region": "Fund II", "city": "Winter Haven", "manager": "Chris", "chargesJul": 59778.0, "pctJul": 0.9702, "gap": 0.0015999999999999348, "remaining": 1781.3844000000029, "openJul": 9084.0, "chgYoY": 0.035511363636363535}, {"community": "Winters", "fullName": "Bedrock Winters, LLC", "charges": 157833.0, "juneUnpaid": 6287.0, "pastDue": 15766.25, "lots": 265, "lotsOwing": 16, "b030": 17031.71, "b3160": 4062.0, "b6190": 3060.25, "b91": 1457.0, "series": [{"pct": 0.9523, "charges": 151214.0, "pastDue": 11903.5, "owing": 24}, {"pct": 0.9424, "charges": 151878.0, "pastDue": 9483.2, "owing": 26}, {"pct": 0.9242, "charges": 150639.0, "pastDue": 16139.7, "owing": 29}, {"pct": 0.9359, "charges": 149289.0, "pastDue": 18220.7, "owing": 29}, {"pct": 0.9229, "charges": 149400.0, "pastDue": 24277.7, "owing": 29}, {"pct": 0.9357, "charges": 148028.0, "pastDue": 23574.5, "owing": 23}, {"pct": 0.9508, "charges": 148670.0, "pastDue": 26103.0, "owing": 15}, {"pct": 0.9676, "charges": 147320.0, "pastDue": 20357.0, "owing": 13}, {"pct": 0.9527, "charges": 146656.0, "pastDue": 27102.7, "owing": 20}, {"pct": 0.9473, "charges": 145306.0, "pastDue": 33812.0, "owing": 24}, {"pct": 0.9648, "charges": 144509.0, "pastDue": 14438.0, "owing": 19}, {"pct": 0.9643, "charges": 143822.0, "pastDue": 13065.5, "owing": 18}, {"pct": 0.9467, "charges": 159836.0, "pastDue": 23358.26, "owing": 38}, {"pct": 0.9652, "charges": 162444.0, "pastDue": 15542.21, "owing": 25}, {"pct": 0.9557, "charges": 160568.0, "pastDue": 19057.5, "owing": 24}, {"pct": 0.9492, "charges": 159180.0, "pastDue": 11224.15, "owing": 27}, {"pct": 0.9438, "charges": 158463.0, "pastDue": 14868.15, "owing": 25}, {"pct": 0.9602, "charges": 157833.0, "pastDue": 15766.25, "owing": 16}, {"pct": 0.9374, "charges": 159387.0, "pastDue": 26396.68, "owing": 21}], "delta": 0.0079, "firstMonth": "Jan '25", "chargesJulPrev": 148670.0, "pctJulPrev": 0.9508, "pdJulPrev": 26103.0, "region": "Fund II", "city": "Zephyrhills", "manager": "Elizabeth", "chargesJul": 159387.0, "pctJul": 0.9374, "gap": -0.022800000000000042, "remaining": 9977.626199999999, "openJul": 26396.68, "chgYoY": 0.07208582767202532}, {"community": "Country Squire", "fullName": "Bedrock Country Squire LLC", "charges": 88675.25, "juneUnpaid": 717.0, "pastDue": 1584.0, "lots": 122, "lotsOwing": 1, "b030": 14574.0, "b3160": 717.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9708, "charges": 84013.91, "pastDue": 4877.58, "owing": 4}, {"pct": 0.9558, "charges": 84464.91, "pastDue": 4899.83, "owing": 8}, {"pct": 0.9617, "charges": 79832.68, "pastDue": 4007.56, "owing": 4}, {"pct": 0.9391, "charges": 82968.68, "pastDue": 7452.92, "owing": 8}, {"pct": 0.9611, "charges": 82481.68, "pastDue": 7845.93, "owing": 6}, {"pct": 0.9723, "charges": 81496.28, "pastDue": 5960.06, "owing": 4}, {"pct": 0.9399, "charges": 83028.28, "pastDue": 7744.7, "owing": 19}, {"pct": 0.9807, "charges": 81512.78, "pastDue": 3604.6, "owing": 3}, {"pct": 0.9664, "charges": 83390.67, "pastDue": 5355.59, "owing": 2}, {"pct": 0.9522, "charges": 82758.67, "pastDue": 8344.63, "owing": 4}, {"pct": 0.9322, "charges": 84758.67, "pastDue": 9968.16, "owing": 23}, {"pct": 0.929, "charges": 85008.67, "pastDue": 10876.87, "owing": 22}, {"pct": 0.9318, "charges": 88802.67, "pastDue": 11803.18, "owing": 21}, {"pct": 0.9384, "charges": 89653.67, "pastDue": 12799.29, "owing": 23}, {"pct": 0.9712, "charges": 87488.75, "pastDue": 4149.34, "owing": 20}, {"pct": 0.9907, "charges": 85191.75, "pastDue": 3218.0, "owing": 2}, {"pct": 0.984, "charges": 89713.25, "pastDue": 1584.0, "owing": 2}, {"pct": 0.9919, "charges": 88675.25, "pastDue": 1584.0, "owing": 1}, {"pct": 0.9401, "charges": 89792.25, "pastDue": 7409.77, "owing": 7}], "delta": 0.0211, "firstMonth": "Jan '25", "chargesJulPrev": 83028.28, "pctJulPrev": 0.9399, "pdJulPrev": 7744.7, "region": "Fund III", "city": "Paisley", "manager": "Elizabeth", "chargesJul": 89792.25, "pctJul": 0.9401, "gap": -0.05179999999999996, "remaining": 5378.555774999996, "openJul": 7409.77, "chgYoY": 0.08146585717541055}, {"community": "New Ranch", "fullName": "Bedrock New Ranch LLC", "charges": 77965.2, "juneUnpaid": 1634.0, "pastDue": 1876.94, "lots": 95, "lotsOwing": 2, "b030": 8398.57, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9325, "charges": 69005.0, "pastDue": 21753.53, "owing": 8}, {"pct": 0.9534, "charges": 69238.0, "pastDue": 10560.97, "owing": 7}, {"pct": 0.9663, "charges": 68471.0, "pastDue": 12203.21, "owing": 4}, {"pct": 0.944, "charges": 68471.0, "pastDue": 10556.56, "owing": 5}, {"pct": 0.9433, "charges": 67670.0, "pastDue": 8922.69, "owing": 5}, {"pct": 0.9427, "charges": 66903.0, "pastDue": 12486.94, "owing": 5}, {"pct": 0.932, "charges": 67678.0, "pastDue": 11540.85, "owing": 6}, {"pct": 0.9876, "charges": 65377.0, "pastDue": 3785.37, "owing": 2}, {"pct": 0.8344, "charges": 68428.0, "pastDue": 11332.97, "owing": 12}, {"pct": 0.9881, "charges": 69962.0, "pastDue": 829.98, "owing": 3}, {"pct": 0.9887, "charges": 72263.0, "pastDue": 933.88, "owing": 2}, {"pct": 0.9784, "charges": 72263.0, "pastDue": 2628.66, "owing": 6}, {"pct": 0.9652, "charges": 76952.2, "pastDue": 4780.87, "owing": 22}, {"pct": 0.9981, "charges": 75311.2, "pastDue": 146.36, "owing": 2}, {"pct": 0.9786, "charges": 77003.2, "pastDue": 1771.48, "owing": 3}, {"pct": 0.9874, "charges": 77032.2, "pastDue": 2026.96, "owing": 3}, {"pct": 0.9675, "charges": 76244.2, "pastDue": 4811.71, "owing": 3}, {"pct": 0.979, "charges": 77965.2, "pastDue": 1876.94, "owing": 2}, {"pct": 0.9359, "charges": 78045.0, "pastDue": 7535.09, "owing": 7}], "delta": 0.0465, "firstMonth": "Jan '25", "chargesJulPrev": 67678.0, "pctJulPrev": 0.932, "pdJulPrev": 11540.85, "region": "Fund III", "city": "Clearwater", "manager": "Kim", "chargesJul": 78045.0, "pctJul": 0.9359, "gap": -0.04310000000000003, "remaining": 5002.684500000004, "openJul": 7535.09, "chgYoY": 0.1531812405803954}, {"community": "Southern Pines", "fullName": "Bedrock Southern Pines LLC", "charges": 85069.9, "juneUnpaid": 151.2, "pastDue": 151.2, "lots": 109, "lotsOwing": 3, "b030": 8958.26, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.8707, "charges": 79945.34, "pastDue": 13354.56, "owing": 17}, {"pct": 0.9253, "charges": 79945.34, "pastDue": 11392.17, "owing": 9}, {"pct": 0.9098, "charges": 80742.34, "pastDue": 15300.71, "owing": 10}, {"pct": 0.9195, "charges": 78214.34, "pastDue": 11328.7, "owing": 9}, {"pct": 0.9694, "charges": 76906.34, "pastDue": 2553.6, "owing": 4}, {"pct": 0.9906, "charges": 77406.34, "pastDue": 903.94, "owing": 5}, {"pct": 0.9545, "charges": 78184.34, "pastDue": 4149.11, "owing": 32}, {"pct": 0.9464, "charges": 77406.34, "pastDue": 4360.93, "owing": 26}, {"pct": 0.9683, "charges": 78184.34, "pastDue": 3595.31, "owing": 6}, {"pct": 0.9794, "charges": 78184.34, "pastDue": 3447.23, "owing": 4}, {"pct": 0.9589, "charges": 81946.45, "pastDue": 6908.62, "owing": 5}, {"pct": 0.8963, "charges": 81694.74, "pastDue": 14088.21, "owing": 12}, {"pct": 0.9456, "charges": 85589.25, "pastDue": 9983.8, "owing": 10}, {"pct": 0.9426, "charges": 84776.25, "pastDue": 8724.37, "owing": 8}, {"pct": 0.9676, "charges": 85867.25, "pastDue": 5551.53, "owing": 9}, {"pct": 0.989, "charges": 84551.25, "pastDue": 1082.5, "owing": 4}, {"pct": 0.9793, "charges": 84551.25, "pastDue": 1926.9, "owing": 5}, {"pct": 0.9982, "charges": 85069.9, "pastDue": 151.2, "owing": 3}, {"pct": 0.9521, "charges": 85819.95, "pastDue": 4397.34, "owing": 12}], "delta": 0.1275, "firstMonth": "Jan '25", "chargesJulPrev": 78184.34, "pctJulPrev": 0.9545, "pdJulPrev": 4149.11, "region": "Fund III", "city": "Bradenton", "manager": "Kim", "chargesJul": 85819.95, "pctJul": 0.9521, "gap": -0.04610000000000003, "remaining": 4110.775605000004, "openJul": 4397.34, "chgYoY": 0.09766162891443475}, {"community": "Aspen Terrace", "fullName": "Bedrock Aspen Terrace LLC", "charges": 34676.0, "juneUnpaid": 1000.01, "pastDue": 1091.37, "lots": 60, "lotsOwing": 2, "b030": 8265.41, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9325, "charges": 35400.0, "pastDue": 7257.68, "owing": 28}, {"pct": 0.9149, "charges": 34473.0, "pastDue": 7294.42, "owing": 16}, {"pct": 0.9588, "charges": 33882.0, "pastDue": 5588.55, "owing": 5}, {"pct": 0.9411, "charges": 33532.0, "pastDue": 6961.82, "owing": 3}, {"pct": 0.9707, "charges": 33532.0, "pastDue": 1783.57, "owing": 9}, {"pct": 0.9158, "charges": 32905.0, "pastDue": 4556.49, "owing": 10}, {"pct": 0.94, "charges": 31651.0, "pastDue": 2125.42, "owing": 9}, {"pct": 0.9546, "charges": 32278.0, "pastDue": 1638.36, "owing": 5}, {"pct": 0.9777, "charges": 32278.0, "pastDue": 1529.17, "owing": 2}, {"pct": 0.9556, "charges": 32875.0, "pastDue": 1962.4, "owing": 7}, {"pct": 0.9618, "charges": 32875.0, "pastDue": 1565.55, "owing": 5}, {"pct": 0.9878, "charges": 32046.0, "pastDue": 390.31, "owing": 4}, {"pct": 0.9619, "charges": 33849.0, "pastDue": 1415.21, "owing": 15}, {"pct": 0.9247, "charges": 35218.0, "pastDue": 3729.25, "owing": 4}, {"pct": 0.9248, "charges": 35257.0, "pastDue": 4874.73, "owing": 4}, {"pct": 0.961, "charges": 34635.0, "pastDue": 2576.67, "owing": 3}, {"pct": 0.9805, "charges": 33972.0, "pastDue": 674.03, "owing": 2}, {"pct": 0.9712, "charges": 34676.0, "pastDue": 1091.37, "owing": 2}, {"pct": 0.8745, "charges": 34426.0, "pastDue": 5617.63, "owing": 10}], "delta": 0.0387, "firstMonth": "Jan '25", "chargesJulPrev": 31651.0, "pctJulPrev": 0.94, "pdJulPrev": 2125.42, "region": "Fund III", "city": "Daytona", "manager": "Elizabeth", "chargesJul": 34426.0, "pctJul": 0.8745, "gap": -0.0966999999999999, "remaining": 4320.462999999998, "openJul": 5617.63, "chgYoY": 0.08767495497772582}, {"community": "Clover Ranch", "fullName": "Bedrock Clover Ranch LLC", "charges": 260796.66, "juneUnpaid": 47054.81, "pastDue": 256653.85, "lots": 341, "lotsOwing": 66, "b030": 131292.64, "b3160": 31987.52, "b6190": 25554.71, "b91": 139335.15, "series": [{"pct": 0.8698, "charges": 208352.43, "pastDue": 135751.94, "owing": 44}, {"pct": 0.8605, "charges": 204201.06, "pastDue": 159530.52, "owing": 46}, {"pct": 0.89, "charges": 203471.53, "pastDue": 153723.47, "owing": 34}, {"pct": 0.9144, "charges": 201051.53, "pastDue": 126506.26, "owing": 29}, {"pct": 0.9224, "charges": 203801.53, "pastDue": 102958.83, "owing": 34}, {"pct": 0.9304, "charges": 202072.53, "pastDue": 83260.6, "owing": 23}, {"pct": 0.924, "charges": 204993.07, "pastDue": 76908.17, "owing": 37}, {"pct": 0.9121, "charges": 210149.11, "pastDue": 91454.32, "owing": 28}, {"pct": 0.921, "charges": 211858.03, "pastDue": 92140.39, "owing": 27}, {"pct": 0.8919, "charges": 226083.48, "pastDue": 108408.43, "owing": 32}, {"pct": 0.8309, "charges": 226813.48, "pastDue": 143459.45, "owing": 54}, {"pct": 0.768, "charges": 229038.48, "pastDue": 180770.12, "owing": 58}, {"pct": 0.7893, "charges": 248536.48, "pastDue": 241744.23, "owing": 78}, {"pct": 0.8796, "charges": 248632.19, "pastDue": 185125.87, "owing": 41}, {"pct": 0.8698, "charges": 249148.33, "pastDue": 172066.61, "owing": 49}, {"pct": 0.8722, "charges": 249923.33, "pastDue": 190869.37, "owing": 47}, {"pct": 0.8442, "charges": 248661.66, "pastDue": 214094.1, "owing": 53}, {"pct": 0.8196, "charges": 260796.66, "pastDue": 256653.85, "owing": 66}, {"pct": 0.7758, "charges": 261057.64, "pastDue": 312027.82, "owing": 82}], "delta": -0.0502, "firstMonth": "Jan '25", "chargesJulPrev": 204993.07, "pctJulPrev": 0.924, "pdJulPrev": 76908.17, "region": "Fund III", "city": "Hampton, GA", "manager": "Kim", "chargesJul": 261057.64, "pctJul": 0.7758, "gap": -0.04379999999999995, "remaining": 58529.12288799999, "openJul": 312027.82, "chgYoY": 0.273494952780599}, {"community": "Mount Carmel Ridge", "fullName": "Bedrock Mount Carmel Ridge LLC", "charges": 166513.87, "juneUnpaid": 50.99, "pastDue": 50.99, "lots": 213, "lotsOwing": 2, "b030": 12536.1, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9998, "charges": 144608.0, "pastDue": 35.99, "owing": 3}, {"pct": 0.9854, "charges": 144608.0, "pastDue": 3610.99, "owing": 5}, {"pct": 0.9863, "charges": 144308.0, "pastDue": 1975.99, "owing": 6}, {"pct": 0.994, "charges": 145008.0, "pastDue": 950.99, "owing": 6}, {"pct": 0.9814, "charges": 146058.0, "pastDue": 2860.99, "owing": 7}, {"pct": 0.9899, "charges": 146748.0, "pastDue": 1660.99, "owing": 5}, {"pct": 0.994, "charges": 147448.0, "pastDue": 1735.99, "owing": 5}, {"pct": 0.9992, "charges": 146048.0, "pastDue": 110.99, "owing": 4}, {"pct": 0.989, "charges": 148138.0, "pastDue": 1710.99, "owing": 8}, {"pct": 0.9929, "charges": 159861.5, "pastDue": 1980.99, "owing": 8}, {"pct": 0.9883, "charges": 161391.5, "pastDue": 3650.99, "owing": 6}, {"pct": 0.9839, "charges": 160626.5, "pastDue": 6105.99, "owing": 8}, {"pct": 0.9923, "charges": 162203.87, "pastDue": 3005.99, "owing": 7}, {"pct": 0.9924, "charges": 160673.87, "pastDue": 3810.99, "owing": 4}, {"pct": 1.0, "charges": 160133.87, "pastDue": 0.99, "owing": 1}, {"pct": 1.0, "charges": 162918.87, "pastDue": 0.99, "owing": 1}, {"pct": 0.9995, "charges": 165588.87, "pastDue": 75.99, "owing": 2}, {"pct": 0.9997, "charges": 166513.87, "pastDue": 50.99, "owing": 2}, {"pct": 0.9616, "charges": 166513.87, "pastDue": 6843.36, "owing": 8}], "delta": -0.0001, "firstMonth": "Jan '25", "chargesJulPrev": 147448.0, "pctJulPrev": 0.994, "pdJulPrev": 1735.99, "region": "Fund III", "city": "Brandon", "manager": "Chris", "chargesJul": 166513.87, "pctJul": 0.9616, "gap": -0.03810000000000002, "remaining": 6394.132607999998, "openJul": 6843.36, "chgYoY": 0.12930572133904827}, {"community": "Eldorado Estates", "fullName": "Bedrock Eldorado Estates LLC", "charges": 94346.9, "juneUnpaid": 743.0, "pastDue": 836.0, "lots": 139, "lotsOwing": 1, "b030": 8642.0, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9916, "charges": 84139.7, "pastDue": 781.0, "owing": 2}, {"pct": 0.9998, "charges": 84840.7, "pastDue": 19.0, "owing": 2}, {"pct": 0.9834, "charges": 85541.7, "pastDue": 1569.0, "owing": 4}, {"pct": 0.9721, "charges": 86242.7, "pastDue": 2604.1, "owing": 6}, {"pct": 0.9807, "charges": 85246.7, "pastDue": 2575.05, "owing": 7}, {"pct": 0.9827, "charges": 85246.7, "pastDue": 1614.05, "owing": 4}, {"pct": 0.9834, "charges": 84545.7, "pastDue": 2578.04, "owing": 3}, {"pct": 0.9832, "charges": 85236.7, "pastDue": 3060.94, "owing": 4}, {"pct": 0.9822, "charges": 83149.7, "pastDue": 1859.94, "owing": 3}, {"pct": 0.978, "charges": 85240.7, "pastDue": 1991.94, "owing": 3}, {"pct": 0.967, "charges": 85873.2, "pastDue": 3432.54, "owing": 5}, {"pct": 0.9856, "charges": 85156.2, "pastDue": 1228.04, "owing": 7}, {"pct": 0.995, "charges": 91060.6, "pastDue": 456.0, "owing": 2}, {"pct": 0.9912, "charges": 93268.4, "pastDue": 893.0, "owing": 2}, {"pct": 0.9945, "charges": 93355.4, "pastDue": 518.0, "owing": 1}, {"pct": 0.9888, "charges": 93332.4, "pastDue": 1118.0, "owing": 2}, {"pct": 0.9881, "charges": 93475.9, "pastDue": 1191.0, "owing": 3}, {"pct": 0.9921, "charges": 94346.9, "pastDue": 836.0, "owing": 1}, {"pct": 0.9601, "charges": 95081.9, "pastDue": 4997.0, "owing": 7}], "delta": 0.0005, "firstMonth": "Jan '25", "chargesJulPrev": 84545.7, "pctJulPrev": 0.9834, "pdJulPrev": 2578.04, "region": "Fund III", "city": "New Smyrna Beach", "manager": "Elizabeth", "chargesJul": 95081.9, "pctJul": 0.9601, "gap": -0.03200000000000003, "remaining": 3793.7678100000044, "openJul": 4997.0, "chgYoY": 0.12462135862616308}, {"community": "Candlelight Estates", "fullName": "Bedrock Candlelight Estates LLC", "charges": 61164.24, "juneUnpaid": 9361.57, "pastDue": 14215.96, "lots": 82, "lotsOwing": 16, "b030": 30907.68, "b3160": 1486.96, "b6190": 747.72, "b91": 0.0, "series": [{"pct": 0.8066, "charges": 55259.13, "pastDue": 40373.97, "owing": 18}, {"pct": 0.8004, "charges": 55259.13, "pastDue": 51191.4, "owing": 24}, {"pct": 0.7915, "charges": 54100.13, "pastDue": 50407.16, "owing": 16}, {"pct": 0.7406, "charges": 56912.13, "pastDue": 45138.78, "owing": 18}, {"pct": 0.8767, "charges": 54605.13, "pastDue": 35478.37, "owing": 10}, {"pct": 0.8656, "charges": 54661.13, "pastDue": 38976.96, "owing": 11}, {"pct": 0.925, "charges": 52768.13, "pastDue": 18175.54, "owing": 7}, {"pct": 0.9448, "charges": 49600.13, "pastDue": 5728.75, "owing": 4}, {"pct": 0.929, "charges": 48513.13, "pastDue": 8153.52, "owing": 6}, {"pct": 0.8872, "charges": 48513.13, "pastDue": 12807.19, "owing": 6}, {"pct": 0.9258, "charges": 49488.13, "pastDue": 13623.36, "owing": 4}, {"pct": 0.9227, "charges": 45097.13, "pastDue": 9305.16, "owing": 4}, {"pct": 0.8066, "charges": 45499.13, "pastDue": 17531.15, "owing": 19}, {"pct": 0.8892, "charges": 50184.24, "pastDue": 14399.04, "owing": 8}, {"pct": 0.9094, "charges": 53344.24, "pastDue": 15798.97, "owing": 7}, {"pct": 0.8471, "charges": 58732.24, "pastDue": 11513.9, "owing": 13}, {"pct": 0.8738, "charges": 60888.24, "pastDue": 11930.98, "owing": 16}, {"pct": 0.8469, "charges": 61164.24, "pastDue": 14215.96, "owing": 16}, {"pct": 0.7608, "charges": 59926.87, "pastDue": 23576.99, "owing": 17}], "delta": 0.0403, "firstMonth": "Jan '25", "chargesJulPrev": 52768.13, "pctJulPrev": 0.925, "pdJulPrev": 18175.54, "region": "Fund III", "city": "Gainesville", "manager": "Elizabeth", "chargesJul": 59926.87, "pctJul": 0.7608, "gap": -0.08609999999999995, "remaining": 14334.507303999999, "openJul": 23576.99, "chgYoY": 0.13566408360500937}, {"community": "Pinewood Estates", "fullName": "Bedrock Pinewood Estates LLC", "charges": 141976.86, "juneUnpaid": 9060.87, "pastDue": 25765.01, "lots": 275, "lotsOwing": 15, "b030": 47575.28, "b3160": 4008.62, "b6190": 979.52, "b91": 6191.0, "series": [{"pct": 0.829, "charges": 110766.74, "pastDue": 59920.87, "owing": 38}, {"pct": 0.7705, "charges": 111874.74, "pastDue": 98238.06, "owing": 45}, {"pct": 0.8063, "charges": 124124.0, "pastDue": 105315.57, "owing": 45}, {"pct": 0.8277, "charges": 122048.0, "pastDue": 109178.16, "owing": 42}, {"pct": 0.8071, "charges": 122085.74, "pastDue": 115281.74, "owing": 51}, {"pct": 0.83, "charges": 118290.02, "pastDue": 114709.65, "owing": 38}, {"pct": 0.8563, "charges": 118329.25, "pastDue": 86136.15, "owing": 29}, {"pct": 0.8446, "charges": 121307.25, "pastDue": 84680.45, "owing": 21}, {"pct": 0.9191, "charges": 119018.9, "pastDue": 45738.91, "owing": 16}, {"pct": 0.8967, "charges": 128051.01, "pastDue": 58901.23, "owing": 25}, {"pct": 0.9017, "charges": 137169.12, "pastDue": 58336.81, "owing": 22}, {"pct": 0.884, "charges": 135024.62, "pastDue": 80481.2, "owing": 25}, {"pct": 0.8932, "charges": 136660.62, "pastDue": 73128.62, "owing": 25}, {"pct": 0.8945, "charges": 138620.62, "pastDue": 60828.4, "owing": 28}, {"pct": 0.9107, "charges": 147679.52, "pastDue": 60768.39, "owing": 24}, {"pct": 0.8757, "charges": 149145.06, "pastDue": 54052.45, "owing": 27}, {"pct": 0.9034, "charges": 143019.86, "pastDue": 38467.48, "owing": 21}, {"pct": 0.9362, "charges": 141976.86, "pastDue": 25765.01, "owing": 15}, {"pct": 0.7797, "charges": 140070.86, "pastDue": 53491.98, "owing": 45}], "delta": 0.1072, "firstMonth": "Jan '25", "chargesJulPrev": 118329.25, "pctJulPrev": 0.8563, "pdJulPrev": 86136.15, "region": "Fund III", "city": "Gainesville", "manager": "Elizabeth", "chargesJul": 140070.86, "pctJul": 0.7797, "gap": -0.15650000000000008, "remaining": 30857.610458000003, "openJul": 53491.98, "chgYoY": 0.18373825575671265}, {"community": "Westgate Manor", "fullName": "Bedrock Westgate Manor LLC", "charges": 90337.22, "juneUnpaid": 6047.12, "pastDue": 36590.82, "lots": 142, "lotsOwing": 10, "b030": 24171.11, "b3160": 6125.01, "b6190": 4389.98, "b91": 18589.96, "series": [{"pct": 0.8522, "charges": 78742.39, "pastDue": 32646.52, "owing": 25}, {"pct": 0.8626, "charges": 78197.39, "pastDue": 29577.58, "owing": 21}, {"pct": 0.8874, "charges": 78590.39, "pastDue": 21030.84, "owing": 18}, {"pct": 0.8916, "charges": 78590.39, "pastDue": 22288.27, "owing": 18}, {"pct": 0.866, "charges": 76644.39, "pastDue": 24426.08, "owing": 20}, {"pct": 0.7982, "charges": 81395.39, "pastDue": 37327.98, "owing": 53}, {"pct": 0.9074, "charges": 82025.39, "pastDue": 28663.24, "owing": 15}, {"pct": 0.9289, "charges": 80251.11, "pastDue": 19894.78, "owing": 10}, {"pct": 0.9217, "charges": 79301.11, "pastDue": 19710.51, "owing": 11}, {"pct": 0.9374, "charges": 80817.22, "pastDue": 19791.91, "owing": 11}, {"pct": 0.891, "charges": 81997.22, "pastDue": 26405.42, "owing": 20}, {"pct": 0.8839, "charges": 81407.22, "pastDue": 34817.22, "owing": 18}, {"pct": 0.8792, "charges": 81997.22, "pastDue": 42244.38, "owing": 36}, {"pct": 0.9277, "charges": 84256.22, "pastDue": 35580.98, "owing": 10}, {"pct": 0.8963, "charges": 83829.22, "pastDue": 40146.68, "owing": 15}, {"pct": 0.8942, "charges": 83082.22, "pastDue": 44924.96, "owing": 16}, {"pct": 0.9091, "charges": 81133.22, "pastDue": 35757.77, "owing": 14}, {"pct": 0.9331, "charges": 90337.22, "pastDue": 36590.82, "owing": 10}, {"pct": 0.8823, "charges": 92003.22, "pastDue": 47449.3, "owing": 16}], "delta": 0.0809, "firstMonth": "Jan '25", "chargesJulPrev": 82025.39, "pctJulPrev": 0.9074, "pdJulPrev": 28663.24, "region": "Fund III", "city": "Gainesville", "manager": "Elizabeth", "chargesJul": 92003.22, "pctJul": 0.8823, "gap": -0.05080000000000007, "remaining": 10828.778994000002, "openJul": 47449.3, "chgYoY": 0.12164318877362246}, {"community": "Palm Terrace", "fullName": "Bedrock Palm Terrace LLC", "charges": 51866.0, "juneUnpaid": 1150.0, "pastDue": 1950.0, "lots": 94, "lotsOwing": 2, "b030": 9403.04, "b3160": 575.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9954, "charges": 47050.0, "pastDue": 215.0, "owing": 5}, {"pct": 0.961, "charges": 47050.0, "pastDue": 1835.0, "owing": 10}, {"pct": 0.9426, "charges": 46520.0, "pastDue": 3970.0, "owing": 11}, {"pct": 0.9633, "charges": 47050.0, "pastDue": 1800.0, "owing": 7}, {"pct": 0.9565, "charges": 48120.0, "pastDue": 3670.0, "owing": 8}, {"pct": 0.947, "charges": 48849.8, "pastDue": 4162.8, "owing": 8}, {"pct": 0.9507, "charges": 48453.0, "pastDue": 2574.8, "owing": 10}, {"pct": 0.9344, "charges": 48983.0, "pastDue": 4239.8, "owing": 10}, {"pct": 0.9283, "charges": 48983.0, "pastDue": 6428.81, "owing": 10}, {"pct": 0.9292, "charges": 48983.0, "pastDue": 6014.8, "owing": 10}, {"pct": 0.9732, "charges": 48983.0, "pastDue": 3509.8, "owing": 6}, {"pct": 0.9016, "charges": 48453.0, "pastDue": 8675.0, "owing": 9}, {"pct": 0.9628, "charges": 50858.0, "pastDue": 4490.0, "owing": 6}, {"pct": 0.978, "charges": 52363.0, "pastDue": 4975.0, "owing": 2}, {"pct": 0.9876, "charges": 52363.0, "pastDue": 5050.0, "owing": 2}, {"pct": 0.999, "charges": 50638.0, "pastDue": 50.0, "owing": 1}, {"pct": 0.9887, "charges": 51265.0, "pastDue": 653.53, "owing": 2}, {"pct": 0.9778, "charges": 51866.0, "pastDue": 1950.0, "owing": 2}, {"pct": 0.9646, "charges": 51866.0, "pastDue": 3287.55, "owing": 12}], "delta": -0.0176, "firstMonth": "Jan '25", "chargesJulPrev": 48453.0, "pctJulPrev": 0.9507, "pdJulPrev": 2574.8, "region": "Fund III", "city": "Lecanto", "manager": "Elizabeth", "chargesJul": 51866.0, "pctJul": 0.9646, "gap": -0.01319999999999999, "remaining": 1836.0563999999993, "openJul": 3287.55, "chgYoY": 0.07043939487751016}, {"community": "Gulf to Bay", "fullName": "Bedrock Gulf to Bay LLC", "charges": 52816.79, "juneUnpaid": 804.0, "pastDue": 857.38, "lots": 74, "lotsOwing": 1, "b030": 6395.22, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9923, "charges": 53656.3, "pastDue": 413.29, "owing": 2}, {"pct": 0.969, "charges": 50046.3, "pastDue": 1813.95, "owing": 3}, {"pct": 0.9792, "charges": 50796.3, "pastDue": 1170.37, "owing": 1}, {"pct": 1.0, "charges": 50046.3, "pastDue": 0.0, "owing": 0}, {"pct": 0.9918, "charges": 50046.3, "pastDue": 410.0, "owing": 1}, {"pct": 0.9852, "charges": 50796.3, "pastDue": 859.29, "owing": 1}, {"pct": 0.9339, "charges": 50046.3, "pastDue": 4652.99, "owing": 4}, {"pct": 0.9694, "charges": 50721.3, "pastDue": 4346.45, "owing": 3}, {"pct": 0.9382, "charges": 48483.79, "pastDue": 5051.53, "owing": 4}, {"pct": 0.9544, "charges": 49233.79, "pastDue": 6048.34, "owing": 4}, {"pct": 0.9647, "charges": 48483.79, "pastDue": 4037.92, "owing": 3}, {"pct": 0.9841, "charges": 47527.59, "pastDue": 868.25, "owing": 2}, {"pct": 0.9684, "charges": 47527.59, "pastDue": 1615.07, "owing": 18}, {"pct": 0.9951, "charges": 51121.09, "pastDue": 250.58, "owing": 2}, {"pct": 0.9995, "charges": 52777.09, "pastDue": 23.8, "owing": 1}, {"pct": 0.9844, "charges": 51973.09, "pastDue": 928.7, "owing": 2}, {"pct": 0.9979, "charges": 52841.79, "pastDue": 112.48, "owing": 4}, {"pct": 0.9848, "charges": 52816.79, "pastDue": 857.38, "owing": 1}, {"pct": 0.9696, "charges": 52816.79, "pastDue": 2673.87, "owing": 2}], "delta": -0.0075, "firstMonth": "Jan '25", "chargesJulPrev": 50046.3, "pctJulPrev": 0.9339, "pdJulPrev": 4652.99, "region": "Fund III", "city": "Clearwater", "manager": "Kim", "chargesJul": 52816.79, "pctJul": 0.9696, "gap": -0.015199999999999991, "remaining": 1605.630415999999, "openJul": 2673.87, "chgYoY": 0.055358537993817736}, {"community": "Swifts", "fullName": "Bedrock Swifts LLC", "charges": 54752.0, "juneUnpaid": 2351.0, "pastDue": 3418.0, "lots": 89, "lotsOwing": 4, "b030": 11645.73, "b3160": 817.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9676, "charges": 49440.0, "pastDue": 3330.0, "owing": 6}, {"pct": 0.9716, "charges": 52315.0, "pastDue": 3955.0, "owing": 4}, {"pct": 0.9992, "charges": 53010.0, "pastDue": 45.0, "owing": 4}, {"pct": 1.0, "charges": 53010.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 52250.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9866, "charges": 52250.0, "pastDue": 700.0, "owing": 1}, {"pct": 0.973, "charges": 51490.0, "pastDue": 1440.0, "owing": 2}, {"pct": 0.9616, "charges": 50100.0, "pastDue": 2720.0, "owing": 3}, {"pct": 0.9865, "charges": 51490.0, "pastDue": 2235.0, "owing": 1}, {"pct": 0.9846, "charges": 51490.0, "pastDue": 3080.0, "owing": 2}, {"pct": 0.9704, "charges": 53010.0, "pastDue": 4600.0, "owing": 4}, {"pct": 0.9705, "charges": 53035.0, "pastDue": 5290.0, "owing": 3}, {"pct": 0.9722, "charges": 55460.0, "pastDue": 6034.42, "owing": 4}, {"pct": 0.9736, "charges": 57732.0, "pastDue": 6786.42, "owing": 3}, {"pct": 0.972, "charges": 55607.0, "pastDue": 7790.42, "owing": 3}, {"pct": 0.986, "charges": 54840.0, "pastDue": 892.0, "owing": 1}, {"pct": 0.9721, "charges": 54807.0, "pastDue": 1677.0, "owing": 2}, {"pct": 0.9571, "charges": 54752.0, "pastDue": 3418.0, "owing": 4}, {"pct": 0.9131, "charges": 53992.0, "pastDue": 7485.76, "owing": 8}], "delta": -0.0105, "firstMonth": "Jan '25", "chargesJulPrev": 51490.0, "pctJulPrev": 0.973, "pdJulPrev": 1440.0, "region": "Fund III", "city": "N. Fort Myers", "manager": "Kim", "chargesJul": 53992.0, "pctJul": 0.9131, "gap": -0.04399999999999993, "remaining": 4691.904799999998, "openJul": 7485.76, "chgYoY": 0.04859195960380647}, {"community": "Imperial Manor", "fullName": "Bedrock Imperial Manor LLC", "charges": 119651.0, "juneUnpaid": 635.0, "pastDue": 1420.0, "lots": 203, "lotsOwing": 1, "b030": 4945.0, "b3160": 635.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9938, "charges": 81666.0, "pastDue": 507.0, "owing": 6}, {"pct": 0.9937, "charges": 100189.0, "pastDue": 630.0, "owing": 13}, {"pct": 0.9959, "charges": 99950.0, "pastDue": 405.0, "owing": 8}, {"pct": 0.9995, "charges": 99711.0, "pastDue": 48.0, "owing": 3}, {"pct": 0.9877, "charges": 101884.0, "pastDue": 1308.0, "owing": 4}, {"pct": 0.9892, "charges": 101645.0, "pastDue": 1853.0, "owing": 2}, {"pct": 0.9947, "charges": 103714.0, "pastDue": 1302.0, "owing": 1}, {"pct": 0.9947, "charges": 104369.0, "pastDue": 1377.0, "owing": 1}, {"pct": 1.0, "charges": 103267.0, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 100959.0, "pastDue": 5.0, "owing": 1}, {"pct": 0.9944, "charges": 100720.0, "pastDue": 583.0, "owing": 2}, {"pct": 0.9931, "charges": 103995.0, "pastDue": 720.0, "owing": 2}, {"pct": 0.9987, "charges": 102342.0, "pastDue": 135.0, "owing": 3}, {"pct": 0.9902, "charges": 118990.0, "pastDue": 1171.0, "owing": 9}, {"pct": 0.9894, "charges": 120017.0, "pastDue": 1394.0, "owing": 8}, {"pct": 0.9946, "charges": 117401.0, "pastDue": 1470.0, "owing": 1}, {"pct": 0.9893, "charges": 118232.0, "pastDue": 1420.0, "owing": 2}, {"pct": 0.9947, "charges": 119651.0, "pastDue": 1420.0, "owing": 1}, {"pct": 0.9837, "charges": 121313.0, "pastDue": 2991.0, "owing": 3}], "delta": 0.0009, "firstMonth": "Jan '25", "chargesJulPrev": 103714.0, "pctJulPrev": 0.9947, "pdJulPrev": 1302.0, "region": "Fund III", "city": "Lakeland", "manager": "Chris", "chargesJul": 121313.0, "pctJul": 0.9837, "gap": -0.01100000000000001, "remaining": 1977.4018999999978, "openJul": 2991.0, "chgYoY": 0.16968779528318256}, {"community": "Towerwood", "fullName": "Bedrock Towerwood LLC", "charges": 249980.36, "juneUnpaid": 825.0, "pastDue": 1735.0, "lots": 332, "lotsOwing": 4, "b030": 3595.0, "b3160": 760.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": 0.9994, "charges": 225361.3, "pastDue": 132.92, "owing": 6}, {"pct": 0.9987, "charges": 223965.32, "pastDue": 298.48, "owing": 5}, {"pct": 0.9979, "charges": 225345.32, "pastDue": 465.5, "owing": 5}, {"pct": 0.9979, "charges": 226035.32, "pastDue": 485.5, "owing": 4}, {"pct": 0.994, "charges": 225345.32, "pastDue": 1418.5, "owing": 5}, {"pct": 0.9967, "charges": 226104.32, "pastDue": 1580.5, "owing": 3}, {"pct": 0.9967, "charges": 225414.32, "pastDue": 2345.5, "owing": 3}, {"pct": 0.9961, "charges": 226794.32, "pastDue": 3240.5, "owing": 4}, {"pct": 1.0, "charges": 226104.32, "pastDue": 0.0, "owing": 0}, {"pct": 0.9967, "charges": 226104.32, "pastDue": 753.98, "owing": 3}, {"pct": 0.9994, "charges": 226762.36, "pastDue": 138.98, "owing": 3}, {"pct": 1.0, "charges": 226056.38, "pastDue": 0.0, "owing": 0}, {"pct": 0.9999, "charges": 249781.34, "pastDue": 30.0, "owing": 1}, {"pct": 0.9966, "charges": 249021.34, "pastDue": 835.0, "owing": 2}, {"pct": 1.0, "charges": 249878.34, "pastDue": 0.0, "owing": 0}, {"pct": 1.0, "charges": 247582.36, "pastDue": 10.0, "owing": 1}, {"pct": 0.9967, "charges": 249980.36, "pastDue": 895.0, "owing": 4}, {"pct": 0.9967, "charges": 249980.36, "pastDue": 1735.0, "owing": 4}, {"pct": 0.9932, "charges": 251500.36, "pastDue": 3595.0, "owing": 6}], "delta": -0.0027, "firstMonth": "Jan '25", "chargesJulPrev": 225414.32, "pctJulPrev": 0.9967, "pdJulPrev": 2345.5, "region": "Fund III", "city": "Lake Wales", "manager": "Chris", "chargesJul": 251500.36, "pctJul": 0.9932, "gap": -0.0035000000000000586, "remaining": 1710.202448000007, "openJul": 3595.0, "chgYoY": 0.11572485723178527}, {"community": "Wood Dale", "fullName": "Bedrock Wood Dale LLC", "charges": 70417.0, "juneUnpaid": 1989.0, "pastDue": 5800.0, "lots": 123, "lotsOwing": 6, "b030": 7398.0, "b3160": 1370.0, "b6190": 722.0, "b91": 1344.0, "series": [{"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": 0.9194, "charges": 61100.0, "pastDue": 5707.0, "owing": 14}, {"pct": 0.9398, "charges": 61652.0, "pastDue": 5783.0, "owing": 11}, {"pct": 0.8982, "charges": 60636.0, "pastDue": 10374.87, "owing": 17}, {"pct": 0.9421, "charges": 62227.0, "pastDue": 29767.58, "owing": 13}, {"pct": 0.9472, "charges": 72228.0, "pastDue": 8321.58, "owing": 13}, {"pct": 0.9604, "charges": 70931.0, "pastDue": 6540.61, "owing": 12}, {"pct": 0.9687, "charges": 70284.0, "pastDue": 4560.61, "owing": 9}, {"pct": 0.9773, "charges": 69601.0, "pastDue": 3874.0, "owing": 9}, {"pct": 0.9718, "charges": 70417.0, "pastDue": 5800.0, "owing": 6}, {"pct": 0.9515, "charges": 70417.0, "pastDue": 9545.0, "owing": 9}], "delta": 0.0524, "firstMonth": "Oct '25", "chargesJulPrev": null, "pctJulPrev": null, "pdJulPrev": null, "region": "Fund IV", "city": "Zephyrhills", "manager": "Elizabeth", "chargesJul": 70417.0, "pctJul": 0.9515, "gap": -0.020299999999999985, "remaining": 3415.224499999999, "openJul": 9545.0, "chgYoY": null}, {"community": "Woodlawn Manor", "fullName": "Bedrock Woodlawn Manor LLC", "charges": 58868.0, "juneUnpaid": 3154.02, "pastDue": 10823.78, "lots": 98, "lotsOwing": 7, "b030": 6252.1, "b3160": 2250.63, "b6190": 2160.56, "b91": 2598.48, "series": [{"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 3266.0, "owing": 12}, {"pct": 0.8985, "charges": 54767.0, "pastDue": 7343.0, "owing": 12}, {"pct": 0.9471, "charges": 58734.0, "pastDue": 4632.0, "owing": 10}, {"pct": 0.9489, "charges": 58734.0, "pastDue": 6028.63, "owing": 15}, {"pct": 0.9648, "charges": 58083.0, "pastDue": 7312.91, "owing": 6}, {"pct": 0.9464, "charges": 58868.0, "pastDue": 10823.78, "owing": 7}, {"pct": 0.9248, "charges": 58868.0, "pastDue": 14434.4, "owing": 7}], "delta": 0.0479, "firstMonth": "Feb '26", "chargesJulPrev": null, "pctJulPrev": null, "pdJulPrev": null, "region": "Fund IV", "city": "Vero Beach", "manager": "Kim", "chargesJul": 58868.0, "pctJul": 0.9248, "gap": -0.021600000000000064, "remaining": 4426.873600000003, "openJul": 14434.4, "chgYoY": null}, {"community": "Scenic View", "fullName": "Bedrock Scenic View LLC", "charges": 60104.0, "juneUnpaid": 7074.16, "pastDue": 41678.16, "lots": 119, "lotsOwing": 18, "b030": 56073.16, "b3160": 0.0, "b6190": 0.0, "b91": 0.0, "series": [{"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 0.0, "owing": 0}, {"pct": null, "charges": 0.0, "pastDue": 37161.16, "owing": 11}, {"pct": 0.8823, "charges": 60104.0, "pastDue": 41678.16, "owing": 18}, {"pct": 0.8296, "charges": 59574.0, "pastDue": 48649.16, "owing": 28}], "delta": null, "firstMonth": "Jun '26", "chargesJulPrev": null, "pctJulPrev": null, "pdJulPrev": null, "region": "Fund III", "city": "Lakeland", "manager": "Chris", "chargesJul": 59574.0, "pctJul": 0.8296, "gap": -0.05269999999999997, "remaining": 10151.409599999999, "openJul": 48649.16, "chgYoY": null}], "portfolio": [{"label": "Jan '25", "pct": 0.9442, "charges": 2635193.15, "pastDue": 441534.99, "partial": false, "missing": false, "nComm": 30}, {"label": "Feb '25", "pct": 0.9419, "charges": 2642142.8, "pastDue": 506674.58, "partial": false, "missing": false, "nComm": 30}, {"label": "Mar '25", "pct": 0.9457, "charges": 2653425.8, "pastDue": 497494.23, "partial": false, "missing": false, "nComm": 30}, {"label": "Apr '25", "pct": 0.9473, "charges": 2648976.55, "pastDue": 447431.94, "partial": false, "missing": false, "nComm": 30}, {"label": "May '25", "pct": 0.949, "charges": 2645968.4, "pastDue": 419720.85, "partial": false, "missing": false, "nComm": 30}, {"label": "Jun '25", "pct": 0.9492, "charges": 2642771.08, "pastDue": 411924.4, "partial": false, "missing": false, "nComm": 30}, {"label": "Jul '25", "pct": 0.9586, "charges": 2636580.7, "pastDue": 340531.29, "partial": false, "missing": false, "nComm": 30}, {"label": "Aug '25", "pct": 0.9642, "charges": 2634509.13, "pastDue": 297677.37, "partial": false, "missing": false, "nComm": 30}, {"label": "Sep '25", "pct": 0.96, "charges": 2651116.04, "pastDue": 296636.79, "partial": false, "missing": false, "nComm": 30}, {"label": "Oct '25", "pct": 0.9587, "charges": 2758375.01, "pastDue": 334693.62, "partial": false, "missing": false, "nComm": 31}, {"label": "Nov '25", "pct": 0.9541, "charges": 2791465.77, "pastDue": 374414.69, "partial": false, "missing": false, "nComm": 31}, {"label": "Dec '25", "pct": 0.9426, "charges": 2783792.38, "pastDue": 463400.63, "partial": false, "missing": false, "nComm": 31}, {"label": "Jan '26", "pct": 0.9464, "charges": 2943096.24, "pastDue": 559988.24, "partial": false, "missing": false, "nComm": 31}, {"label": "Feb '26", "pct": 0.9599, "charges": 3039159.14, "pastDue": 436070.04, "partial": false, "missing": false, "nComm": 32}, {"label": "Mar '26", "pct": 0.9655, "charges": 3069084.68, "pastDue": 400388.37, "partial": false, "missing": false, "nComm": 32}, {"label": "Apr '26", "pct": 0.965, "charges": 3045807.24, "pastDue": 367029.51, "partial": false, "missing": false, "nComm": 32}, {"label": "May '26", "pct": 0.9644, "charges": 3066804.07, "pastDue": 375314.31, "partial": false, "missing": false, "nComm": 32}, {"label": "Jun '26", "pct": 0.9578, "charges": 3159714.55, "pastDue": 479407.99, "partial": false, "missing": false, "nComm": 33}, {"label": "Jul '26*", "pct": 0.9195, "charges": 3169522.01, "pastDue": 708799.31, "partial": true}], "yoy": {"prevCharges": 2636580.7, "prevPct": 0.9586, "prevPD": 340531.29, "ssPrevCharges": 2636580.7, "ssNowCharges": 2979321.01}, "regions": ["Fund II", "Fund III", "Fund IV"], "managers": ["Chris", "Kim", "Elizabeth"]};
+const DATA = RAW.communities, PORT = RAW.portfolio, YOY = RAW.yoy, REGIONS = RAW.regions;
+const LABELS = PORT.slice(0,18).map(p=>p.label);
+const JUN = 17, JUL = 18;
+const QUARTERS = [
+  {label:"Q1 2026", idx:[12,13,14]},   // Jan Feb Mar '26
+  {label:"Q2 2026", idx:[15,16,17]},   // Apr May Jun '26
+  {label:"Q3 2026", idx:[18]},         // Jul '26 (MTD) — Aug/Sep not yet loaded
+  {label:"Q4 2026", idx:[]},           // no reports yet
+];
+const DAY = 13, DAYS_IN_MONTH = 31;
+
+DATA.forEach(d=>{
+  const j = d.series[JUN], u = d.series[JUL];
+  d.pctCollected = j.pct; d.pastDue = j.pastDue; d.pdRatio = j.pastDue/j.charges;
+  d.aged = d.b3160 + d.b6190 + d.b91;
+  d.recvTotal = d.b030 + d.aged;
+  d.trend = d.pctCollected;
+  d.isNew = d.series[0].pct === null;
+  d.newLabel = d.isNew && d.firstMonth ? 'NEW '+d.firstMonth.slice(0,3).toUpperCase() : '';
+  d.chargesJul = u.charges; d.pctJul = u.pct;
+  d.gap = (u.pct!==null && j.pct!==null) ? u.pct - j.pct : null;
+  d.remaining = u.pct!==null ? u.charges*(1-u.pct) : null;
+  d.openJul = u.pastDue;
+  d.chgYoY = d.chargesJulPrev ? u.charges/d.chargesJulPrev - 1 : null;
+});
+const fmt$ = v => "$"+Math.round(v).toLocaleString();
+const fmtP = v => (v*100).toFixed(1)+"%";
+const cls = p => p>=.95?"g":(p>=.85?"a":"r");
+
+// ---------- filter state ----------
+let REGION = "All";
+let MGR = "All";
+const F = () => DATA.filter(d => (REGION==="All"||d.region===REGION) && (MGR==="All"||d.manager===MGR));
+// aggregate a month across a set of communities
+function agg(list, i){
+  let tc=0, unpaid=0, pd=0, any=false;
+  list.forEach(d=>{
+    const s=d.series[i];
+    if(s.pct===null) return;
+    any=true; tc+=s.charges; unpaid+=s.charges*(1-s.pct); pd+=s.pastDue;
+  });
+  return any ? {pct: 1-unpaid/tc, charges: tc, pastDue: pd} : null;
+}
+const seriesFor = list => PORT.map((_,i)=>agg(list,i));
+
+// ---------- fund bar ----------
+const MGRS = RAW.managers || [];
+const rb=document.getElementById("regionbar");
+["All",...REGIONS].forEach(r=>{
+  const n = r==="All"?DATA.length:DATA.filter(d=>d.region===r && (MGR==="All"||d.manager===MGR)).length;
+  const b=document.createElement("button");
+  b.innerHTML=(r==="All"?"All funds":r)+`<span class="n">${n}</span>`;
+  b.dataset.r=r; if(r==="All")b.classList.add("on");
+  b.addEventListener("click",()=>{
+    REGION=r;
+    rb.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.r===r));
+    refreshFilterCounts(); renderAll();
+  });
+  rb.appendChild(b);
+});
+// ---------- manager/region bar ----------
+const mb=document.getElementById("mgrbar");
+["All",...MGRS].forEach(mgv=>{
+  const n = mgv==="All"?DATA.length:DATA.filter(d=>d.manager===mgv && (REGION==="All"||d.region===REGION)).length;
+  const b=document.createElement("button");
+  b.innerHTML=(mgv==="All"?"All regions":mgv)+`<span class="n">${n}</span>`;
+  b.dataset.m=mgv; if(mgv==="All")b.classList.add("on");
+  b.addEventListener("click",()=>{
+    MGR=mgv;
+    mb.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.m===mgv));
+    refreshFilterCounts(); renderAll();
+  });
+  mb.appendChild(b);
+});
+function refreshFilterCounts(){
+  rb.querySelectorAll("button").forEach(b=>{
+    const r=b.dataset.r;
+    const n = r==="All"?DATA.filter(d=>MGR==="All"||d.manager===MGR).length
+                        :DATA.filter(d=>d.region===r && (MGR==="All"||d.manager===MGR)).length;
+    b.querySelector(".n").textContent = n;
+  });
+  mb.querySelectorAll("button").forEach(b=>{
+    const mgv=b.dataset.m;
+    const n = mgv==="All"?DATA.filter(d=>REGION==="All"||d.region===REGION).length
+                         :DATA.filter(d=>d.manager===mgv && (REGION==="All"||d.region===REGION)).length;
+    b.querySelector(".n").textContent = n;
+  });
+}
+
+// ---------- tabs ----------
+document.querySelectorAll(".tabs>button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tabs>button").forEach(x=>{x.classList.remove("on");x.setAttribute("aria-selected","false");});
+  b.classList.add("on"); b.setAttribute("aria-selected","true");
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("on"));
+  document.getElementById("view-"+b.dataset.view).classList.add("on");
+}));
+
+// ---------- closed view ----------
+function renderKpis(S){
+  const jun=S[JUN];
+  const prior=S.slice(0,JUN).filter(x=>x);
+  const avg=prior.reduce((s,x)=>s+x.pct,0)/prior.length;
+  const first=prior[0];
+  const best=S.slice(0,18).filter(x=>x).reduce((a,b)=>a.pct>b.pct?a:b);
+  const bestLab=LABELS[S.findIndex(x=>x===best)];
+  const list=F();
+  const t91=list.reduce((s,d)=>s+d.b91,0);
+  const pdD=jun.pastDue-first.pastDue;
+  const kpis=[
+   {lab:"Collected — June (latest closed)", val:fmtP(jun.pct), sub:(jun.pct-avg>=0?"+":"")+((jun.pct-avg)*100).toFixed(1)+" pts vs prior-months avg", c: jun.pct>=avg?"":"warn"},
+   {lab:"Best month", val:fmtP(best.pct), sub:bestLab+" · peak for this selection", c:""},
+   {lab:"Total past due (Jun 30)", val:fmt$(jun.pastDue), sub:(pdD>=0?"+":"−")+fmt$(Math.abs(pdD)).slice(1)+" since Jan '25", c:"warn"},
+   {lab:"Receivables 91+ days", val:fmt$(t91), sub:"oldest & hardest to recover", c:"bad"}
+  ];
+  document.getElementById("kpis").innerHTML = kpis.map(k=>
+   `<div class="kpi ${k.c}"><div class="lab">${k.lab}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div></div>`).join("");
+}
+function renderTrend(S){
+  const W=640,H=230,L=52,R=20,Tp=16,B=40;
+  const x=i=>L+(W-L-R)*(i/17);
+  const pts=S.slice(0,18).map((p,i)=>({i,p})).filter(o=>o.p);
+  const vs=pts.map(o=>o.p.pct);
+  const span=Math.max(...vs)-Math.min(...vs);
+  const step=span>.06?.02:.01;
+  const yMin=Math.floor((Math.min(...vs)-.004)*100)/100, yMax=Math.ceil((Math.max(...vs)+.004)*100)/100;
+  const y=v=>Tp+(H-Tp-B)*(1-(v-yMin)/(yMax-yMin||.01));
+  let s="";
+  for(let g=yMin;g<=yMax+1e-9;g+=step){
+    s+=`<line x1="${L}" y1="${y(g)}" x2="${W-R}" y2="${y(g)}" stroke="#E3E9E2"/>`;
+    s+=`<text x="${L-8}" y="${y(g)+4}" text-anchor="end" font-family="IBM Plex Mono" font-size="10.5" fill="#4C6058">${(g*100).toFixed(0)}%</text>`;
+  }
+  for(let k=1;k<pts.length;k++){
+    const a=pts[k-1], b=pts[k];
+    const dash=(b.i-a.i>1)?' stroke-dasharray="4 5"':'';
+    s+=`<line x1="${x(a.i)}" y1="${y(a.p.pct)}" x2="${x(b.i)}" y2="${y(b.p.pct)}" stroke="#1E7A5A" stroke-width="2.5"${dash}/>`;
+  }
+  const mn=Math.min(...vs), mx=Math.max(...vs);
+  pts.forEach(({i,p})=>{
+    s+=`<circle cx="${x(i)}" cy="${y(p.pct)}" r="4" fill="#1E7A5A" data-t="${LABELS[i]}: ${fmtP(p.pct)}\n${fmt$(p.charges)} billed"/>`;
+    if(i===pts[0].i||i===JUN||p.pct===mn||p.pct===mx)
+      s+=`<text x="${x(i)}" y="${y(p.pct)+(p.pct===mn?18:-11)}" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#17302A">${fmtP(p.pct)}</text>`;
+  });
+  LABELS.forEach((lb,i)=>{
+    const lab=lb.slice(0,3);
+    if(i%2===0||lab==="Jan") s+=`<text x="${x(i)}" y="${H-14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#17302A">${lab}</text>`;
+    if(lab==="Jan") s+=`<text x="${x(i)}" y="${H-2}" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" font-weight="600" fill="#4C6058">${lb.slice(4)}</text>`;
+  });
+  document.getElementById("trendsvg").innerHTML=s;
+}
+function renderPd(S){
+  const W=380,H=230,L=56,R=14,Tp=16,B=40;
+  const x=i=>L+(W-L-R)*(i/17);
+  const pts=S.slice(0,18).map((p,i)=>({i,p})).filter(o=>o.p);
+  const vals=pts.map(o=>o.p.pastDue);
+  const rng=Math.max(...vals)-Math.min(...vals)||1000;
+  const stepC=[10000,25000,50000,100000].find(st=>rng/st<=6)||100000;
+  const yMin=Math.floor(Math.min(...vals)/stepC)*stepC, yMax=Math.ceil(Math.max(...vals)/stepC)*stepC;
+  const y=v=>Tp+(H-Tp-B)*(1-(v-yMin)/(yMax-yMin||1));
+  let s="";
+  for(let g=yMin;g<=yMax+1;g+=stepC){
+    s+=`<line x1="${L}" y1="${y(g)}" x2="${W-R}" y2="${y(g)}" stroke="#E3E9E2"/>`;
+    s+=`<text x="${L-7}" y="${y(g)+4}" text-anchor="end" font-family="IBM Plex Mono" font-size="10" fill="#4C6058">$${g>=1e6?(g/1e6)+"M":(g/1000)+"k"}</text>`;
+  }
+  for(let k=1;k<pts.length;k++){
+    const a=pts[k-1], b=pts[k];
+    const dash=(b.i-a.i>1)?' stroke-dasharray="4 5"':'';
+    s+=`<line x1="${x(a.i)}" y1="${y(a.p.pastDue)}" x2="${x(b.i)}" y2="${y(b.p.pastDue)}" stroke="#BF4132" stroke-width="2.5"${dash}/>`;
+  }
+  pts.forEach(({i,p})=>{ s+=`<circle cx="${x(i)}" cy="${y(p.pastDue)}" r="3.5" fill="#BF4132" data-t="${LABELS[i]}: ${fmt$(p.pastDue)}"/>`; });
+  LABELS.forEach((lb,i)=>{
+    if(i%3===0) s+=`<text x="${x(i)}" y="${H-14}" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#17302A">${lb.slice(0,3)}</text>`;
+    if(lb.slice(0,3)==="Jan") s+=`<text x="${x(i)}" y="${H-2}" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" font-weight="600" fill="#4C6058">${lb.slice(4)}</text>`;
+  });
+  document.getElementById("pdsvg").innerHTML=s;
+}
+function spark(d){
+  const w=94,h=26,pad=3;
+  const ser=d.series.slice(0,18);
+  const pts=ser.map((s,i)=>({i,v:s.pct})).filter(p=>p.v!==null);
+  if(pts.length<2) return `<svg width="${w}" height="${h}"><text x="4" y="17" font-family="IBM Plex Mono" font-size="9.5" fill="#9AA79C">new · ${d.firstMonth||""}</text></svg>`;
+  const vs=pts.map(p=>p.v);
+  const mn=Math.min(...vs,.8), mx=Math.max(...vs,1);
+  const X=i=>pad+(w-2*pad)*(i/17);
+  const Y=v=>pad+(h-2*pad)*(1-(v-mn)/(mx-mn||1));
+  let path=""; pts.forEach((p,k)=>{path+=(k?"L":"M")+X(p.i).toFixed(1)+" "+Y(p.v).toFixed(1)+" ";});
+  const tipTxt=ser.map((s,i)=>LABELS[i]+": "+(s.pct===null?"—":fmtP(s.pct))).join("\n");
+  return `<svg width="${w}" height="${h}" data-t="${d.community}\n${tipTxt}" style="cursor:default">
+    <path d="${path}" fill="none" stroke="#4C6058" stroke-width="1.6"/>
+    <circle cx="${X(JUN)}" cy="${Y(d.series[JUN].pct)}" r="3" fill="#1E7A5A"/>
+  </svg>`;
+}
+let sortK="pctCollected", sortAsc=true, mode="pct", qs="";
+function renderTable(S){
+  const tbody=document.querySelector("#perf tbody"), tfoot=document.querySelector("#perf tfoot");
+  let rows=F().filter(d=>d.community.toLowerCase().includes(qs));
+  rows.sort((a,b)=>{
+    let va=a[sortK],vb=b[sortK];
+    if(sortK==="delta"){va=a.delta===null?99:a.delta;vb=b.delta===null?99:b.delta;}
+    if(typeof va==="string") return sortAsc?va.localeCompare(vb):vb.localeCompare(va);
+    return sortAsc?va-vb:vb-va;
+  });
+  tbody.innerHTML=rows.map(d=>{
+    const p=d.pctCollected, c=cls(p);
+    const collectedTxt = mode==="pct"?fmtP(p):fmt$(d.series[JUN].charges*p);
+    const pdTxt = mode==="pct"?fmtP(d.pdRatio):fmt$(d.pastDue);
+    let dTxt, dCls="";
+    if(d.delta===null){dTxt="—";}
+    else{const pts=d.delta*100; dCls=pts<=-1?"r":(pts>=1?"g":""); dTxt=(pts>0?"+":"")+pts.toFixed(1)+" pt";}
+    return `<tr>
+      <td>${d.community}${d.isNew?'<span class="newpill">'+d.newLabel+'</span>':''}<span class="cty">${d.city} · ${d.region} · ${d.manager}</span></td>
+      <td class="hide-sm">${fmt$(d.series[JUN].charges)}</td>
+      <td><span class="pctcell"><span class="minibar"><i style="width:${Math.max(2,p*100)}%;background:var(--${c==='g'?'green':(c==='a'?'amber':'red')})"></i></span><span class="${c}">${collectedTxt}</span></span></td>
+      <td>${spark(d)}</td>
+      <td class="${dCls}">${dTxt}</td>
+      <td>${fmt$(d.pastDue)}</td>
+      <td class="hide-sm ${d.pdRatio>=.5?'r':(d.pdRatio>=.2?'a':'')}">${pdTxt}</td>
+    </tr>`;
+  }).join("");
+  const jun=S[JUN], prior=S.slice(0,JUN).filter(x=>x);
+  tfoot.innerHTML=`<tr><td>${(REGION==="All"&&MGR==="All")?"Portfolio":(REGION!=="All"&&MGR!=="All"?REGION+" · "+MGR:(REGION!=="All"?REGION:MGR))}</td><td class="hide-sm">${fmt$(jun.charges)}</td>
+    <td>${mode==="pct"?fmtP(jun.pct):fmt$(jun.charges*jun.pct)}</td><td></td>
+    <td>${((jun.pct-prior[0].pct)*100>0?"+":"")+((jun.pct-prior[0].pct)*100).toFixed(1)} pt</td>
+    <td>${fmt$(jun.pastDue)}</td><td class="hide-sm">${mode==="pct"?fmtP(jun.pastDue/jun.charges):fmt$(jun.pastDue)}</td></tr>`;
+  document.querySelectorAll("#perf th").forEach(th=>{
+    const a=th.querySelector(".arr"); if(a) a.textContent = th.dataset.k===sortK?(sortAsc?"▲":"▼"):"";
+  });
+}
+document.querySelectorAll("#perf th").forEach(th=>{
+  if(th.dataset.k==="trend")return;
+  th.addEventListener("click",()=>{
+    if(sortK===th.dataset.k) sortAsc=!sortAsc; else {sortK=th.dataset.k; sortAsc=true;}
+    renderTable(seriesFor(F()));
+  });
+});
+document.getElementById("q").addEventListener("input",e=>{qs=e.target.value.toLowerCase();renderTable(seriesFor(F()));});
+document.querySelectorAll(".seg [data-mode]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".seg [data-mode]").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); mode=b.dataset.mode; renderTable(seriesFor(F()));
+}));
+
+let agMode="abs";
+function renderAging(){
+  const agEl=document.getElementById("aging");
+  const rows=[...F()].sort((a,b)=>b.recvTotal-a.recvTotal);
+  const max=Math.max(...rows.map(d=>d.recvTotal),1);
+  agEl.innerHTML=rows.map(d=>{
+    const base = agMode==="abs" ? d.recvTotal/max : 1;
+    const seg=(v,c,name)=> v<=0?"":`<i class="${c}" data-t="${d.community} — ${name}\n${fmt$(v)} (${d.recvTotal? (v/d.recvTotal*100).toFixed(0):0}% of receivable)" style="width:${(v/d.recvTotal)*base*100}%"></i>`;
+    return `<div class="agingrow">
+      <div class="agname" title="${d.fullName} — ${d.city}">${d.community}</div>
+      <div class="stack">${seg(d.b030,"b1","0–30 days")}${seg(d.b3160,"b2","31–60 days")}${seg(d.b6190,"b3","61–90 days")}${seg(d.b91,"b4","91+ days")}</div>
+      <div class="agtotal">${fmt$(d.recvTotal)}</div>
+    </div>`;
+  }).join("");
+}
+document.querySelectorAll(".seg [data-agmode]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".seg [data-agmode]").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); agMode=b.dataset.agmode; renderAging();
+}));
+
+// ---------- current month view ----------
+let sortKC="pctJul", sortAscC=true, qsC="";
+function renderCurrent(S){
+  const list=F();
+  const jul=S[JUL], jun=S[JUN];
+  const julCollected=jul.charges*jul.pct, julRemain=jul.charges*(1-jul.pct);
+  // YoY within region
+  const ss=list.filter(d=>d.chargesJulPrev);
+  const ssPrev=ss.reduce((s,d)=>s+d.chargesJulPrev,0);
+  const ssNow=ss.reduce((s,d)=>s+d.chargesJul,0);
+  const prevAll=list.reduce((s,d)=>s+(d.chargesJulPrev||0),0);
+  const yoyTot=prevAll? jul.charges/prevAll-1 : null;
+  const yoySS=ssPrev? ssNow/ssPrev-1 : null;
+  // last July final pct for region
+  let ptc=0, punp=0;
+  ss.forEach(d=>{ptc+=d.chargesJulPrev; punp+=d.chargesJulPrev*(1-d.pctJulPrev);});
+  const prevPct=ptc? 1-punp/ptc : null;
+  const kpisC=[
+   {lab:"July charges billed", val:fmt$(jul.charges), sub:list.length+" communit"+(list.length===1?"y":"ies"), c:""},
+   {lab:"Charges vs July '25", val:yoyTot===null?"—":(yoyTot>=0?"+":"")+fmtP(yoyTot), sub:yoySS===null?"no prior-year billing":((yoySS>=0?"+":"")+fmtP(yoySS)+" same-store ("+ss.length+")"), c:""},
+   {lab:"Collected so far", val:fmtP(jul.pct), sub:fmt$(julCollected)+" received", c:""},
+   {lab:"Remaining this month", val:fmt$(julRemain), sub:"July charges still unpaid", c:"warn"},
+   {lab:"All open balances", val:fmt$(jul.pastDue), sub:"incl. prior arrears · as of 7/13", c:"bad"}
+  ];
+  document.getElementById("kpis-cur").innerHTML = kpisC.map(k=>
+   `<div class="kpi ${k.c}"><div class="lab">${k.lab}</div><div class="val">${k.val}</div><div class="sub">${k.sub}</div></div>`).join("");
+  document.getElementById("daypill").textContent = `Day ${DAY} of ${DAYS_IN_MONTH}`;
+  document.getElementById("progresscard").innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap;gap:6px">
+      <span>Collected ${fmtP(jul.pct)} of July billings</span><span>June closed at ${fmtP(jun.pct)}${prevPct!==null?" · July '25 closed at "+fmtP(prevPct):""}</span>
+    </div>
+    <div class="daybar" style="position:relative">
+      <i style="width:${(jul.pct*100).toFixed(1)}%"></i>
+      <span style="position:absolute;top:-4px;bottom:-4px;left:${(jun.pct*100).toFixed(1)}%;width:2px;background:var(--ink)"></span>
+    </div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)">▮ marker = June final. Gap to close: ${fmtP(jun.pct-jul.pct)} ≈ ${fmt$(jul.charges*(jun.pct-jul.pct))}</div>`;
+
+  const tbodyC=document.querySelector("#perfc tbody"), tfootC=document.querySelector("#perfc tfoot");
+  let rows=list.filter(d=>d.community.toLowerCase().includes(qsC));
+  rows.sort((a,b)=>{
+    let va=a[sortKC],vb=b[sortKC];
+    if(va===null)va=sortAscC?9e9:-9e9; if(vb===null)vb=sortAscC?9e9:-9e9;
+    if(typeof va==="string") return sortAscC?va.localeCompare(vb):vb.localeCompare(va);
+    return sortAscC?va-vb:vb-va;
+  });
+  tbodyC.innerHTML=rows.map(d=>{
+    const p=d.pctJul, c=p>=.9?"g":(p>=.8?"a":"r");
+    const gapPts=d.gap===null?null:d.gap*100;
+    const yc=d.chgYoY;
+    return `<tr>
+      <td>${d.community}${d.isNew?'<span class="newpill">'+d.newLabel+'</span>':''}<span class="cty">${d.city} · ${d.region} · ${d.manager}</span></td>
+      <td class="hide-sm">${fmt$(d.chargesJul)}</td>
+      <td class="${yc===null?'':(yc<0?'r':'')}">${yc===null?'<span style="opacity:.5">new</span>':(yc>=0?"+":"")+fmtP(yc)}</td>
+      <td><span class="pctcell"><span class="minibar"><i style="width:${Math.max(2,p*100)}%;background:var(--${c==='g'?'green':(c==='a'?'amber':'red')})"></i></span><span class="${c}">${fmtP(p)}</span></span></td>
+      <td class="${gapPts===null?'':(gapPts<=-10?'r':(gapPts<=-4?'a':'g'))}">${gapPts===null?"—":(gapPts>0?"+":"")+gapPts.toFixed(1)+" pt"}</td>
+      <td class="hide-sm">${d.pctJulPrev===null?"—":fmtP(d.pctJulPrev)}</td>
+      <td>${fmt$(d.remaining)}</td>
+      <td class="hide-sm">${fmt$(d.openJul)}</td>
+    </tr>`;
+  }).join("");
+  tfootC.innerHTML=`<tr><td>${(REGION==="All"&&MGR==="All")?"Portfolio":(REGION!=="All"&&MGR!=="All"?REGION+" · "+MGR:(REGION!=="All"?REGION:MGR))}</td><td class="hide-sm">${fmt$(jul.charges)}</td>
+    <td>${yoyTot===null?"—":(yoyTot>=0?"+":"")+fmtP(yoyTot)}</td>
+    <td>${fmtP(jul.pct)}</td>
+    <td>${((jul.pct-jun.pct)*100).toFixed(1)} pt</td>
+    <td class="hide-sm">${prevPct===null?"—":fmtP(prevPct)}</td>
+    <td>${fmt$(julRemain)}</td><td class="hide-sm">${fmt$(jul.pastDue)}</td></tr>`;
+  document.querySelectorAll("#perfc th").forEach(th=>{
+    const a=th.querySelector(".arr"); if(a) a.textContent = th.dataset.k===sortKC?(sortAscC?"▲":"▼"):"";
+  });
+}
+document.querySelectorAll("#perfc th").forEach(th=>{
+  th.addEventListener("click",()=>{
+    if(sortKC===th.dataset.k) sortAscC=!sortAscC; else {sortKC=th.dataset.k; sortAscC=true;}
+    renderCurrent(seriesFor(F()));
+  });
+});
+document.getElementById("qc").addEventListener("input",e=>{qsC=e.target.value.toLowerCase();renderCurrent(seriesFor(F()));});
+
+function renderQuarters(S){
+  const qg=document.getElementById("qgrid");
+  qg.innerHTML = QUARTERS.map(q=>{
+    const vals = q.idx.map(i=>S[i]).filter(v=>v);
+    if(!vals.length){
+      return `<div class="qcard empty"><div class="qlab">${q.label}</div><div class="qval">No data yet</div><div class="qsub">awaiting reports</div></div>`;
+    }
+    const avgPct = vals.reduce((s,v)=>s+v.pct,0)/vals.length;
+    const avgPD = vals.reduce((s,v)=>s+v.pastDue,0)/vals.length;
+    const partial = q.idx.length < 3 && q.label!=="Q1 2026" || (q.label==="Q3 2026");
+    const monthsNote = q.label==="Q3 2026" ? "July MTD only" : (vals.length<3 ? vals.length+" of 3 months" : "3 months avg");
+    return `<div class="qcard"><div class="qlab">${q.label}</div><div class="qval">${fmtP(avgPct)}</div><div class="qsub">${monthsNote} · avg PD ${fmt$(avgPD)}</div></div>`;
+  }).join("");
+}
+// ---------- master render ----------
+function renderAll(){
+  const S=seriesFor(F());
+  const list=F();
+  const parts=[];
+  if(REGION!=="All") parts.push(REGION);
+  if(MGR!=="All") parts.push(MGR+"'s Region");
+  document.getElementById("eyebrow").textContent = parts.length
+    ? "Bedrock Communities · "+parts.join(" · ")+" · "+list.length+" propert"+(list.length===1?"y":"ies")
+    : "Bedrock Communities · 33 Properties · Fund II / III / IV";
+  document.getElementById("trendtitle").textContent =
+    (parts.length ? parts.join(" · ") : "Portfolio")+" trend — closed months";
+  renderKpis(S); renderTrend(S); renderPd(S); renderQuarters(S); renderTable(S); renderAging(); renderCurrent(S);
+}
+renderAll();
+
+// global tooltip
+const tip=document.getElementById("tip");
+document.body.addEventListener("mousemove",e=>{
+  const t=e.target.closest("[data-t]");
+  if(t){tip.textContent=t.dataset.t;tip.style.opacity=1;
+    tip.style.left=Math.min(e.clientX+14,window.innerWidth-290)+"px";tip.style.top=(e.clientY+14)+"px";}
+  else tip.style.opacity=0;
+});
+</script>
+</body>
+</html>
